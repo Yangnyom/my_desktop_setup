@@ -53,9 +53,8 @@
 
 ### 👥 팀원 역할
 * **PM (Product Manager):** [김강민]
-* **Tech Lead:** [김강민]
 * **UI/UX Designer:** [송승우, 조성우, 곽태호]
-* **QA Engineer:** [송승우, 곽태호]
-* **Scrum Master:** [이름]
-* **Tech Writer:** [이름]
-* **DevRel (Presenter):** [이름]
+* **QA Engineer:** [송승우, 곽태호, 이봉운]
+* **Scrum Master:** [김강민, 이봉운]
+* **frontend Developer:** [김강민, 조성우, 송승우, 이현석]
+* **DevRel (Presenter):** [김강민]
