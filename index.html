@@ -1,1295 +1,1050 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Desk Setup Simulator</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --accent: #e94560;
-    --accent-soft: rgba(233, 69, 96, 0.14);
-    --line: rgba(255, 255, 255, 0.1);
-    --panel-bg: rgba(18, 24, 38, 0.92);
-    --panel-muted: rgba(255, 255, 255, 0.58);
-    --panel-text: #f7f9fc;
-    --button-bg: rgba(255, 255, 255, 0.07);
-  }
-
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-    background: #0d1020;
-    color: var(--panel-text);
-  }
-
-  body.theme-light {
-    background: #eef3f8;
-  }
-
-  body.theme-wood {
-    background: #efe4d0;
-  }
-
-  body.theme-dark {
-    background: #0d1020;
-  }
-
-  button {
-    font-family: inherit;
-  }
-
-  .app-shell {
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr) 320px;
-    background:
-      radial-gradient(circle at top left, rgba(72, 133, 237, 0.18), transparent 34%),
-      linear-gradient(135deg, rgba(9, 12, 26, 0.96), rgba(15, 23, 42, 0.96));
-  }
-
-  body.theme-light .app-shell {
-    background:
-      radial-gradient(circle at top left, rgba(87, 142, 210, 0.18), transparent 34%),
-      linear-gradient(135deg, rgba(235, 240, 246, 0.98), rgba(214, 225, 235, 0.96));
-  }
-
-  body.theme-wood .app-shell {
-    background:
-      radial-gradient(circle at top left, rgba(142, 92, 41, 0.2), transparent 34%),
-      linear-gradient(135deg, rgba(52, 38, 27, 0.95), rgba(101, 72, 46, 0.9));
-  }
-
-  .side-panel,
-  .option-panel {
-    min-width: 0;
-    height: 100vh;
-    overflow-y: auto;
-    background: var(--panel-bg);
-    border-color: var(--line);
-    backdrop-filter: blur(14px);
-  }
-
-  .side-panel {
-    border-right: 1px solid var(--line);
-    padding: 22px 18px;
-  }
-
-  .option-panel {
-    border-left: 1px solid var(--line);
-    padding: 22px 18px;
-  }
-
-  .panel-title {
-    margin-bottom: 18px;
-  }
-
-  .eyebrow {
-    color: #81d4fa;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .panel-title h1,
-  .panel-title h2 {
-    margin-top: 4px;
-    font-size: 24px;
-    line-height: 1.2;
-  }
-
-  .panel-title p:last-child {
-    margin-top: 8px;
-    color: var(--panel-muted);
-    font-size: 13px;
-    line-height: 1.45;
-  }
-
-  .category-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-
-  .category-tabs button,
-  .option-button,
-  .action-button,
-  .item-card {
-    border: 1px solid var(--line);
-    background: var(--button-bg);
-    color: var(--panel-text);
-    cursor: pointer;
-    transition: 0.18s ease;
-  }
-
-  .category-tabs button {
-    padding: 7px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-  }
-
-  .category-tabs button.active,
-  .option-button.active {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: #fff;
-  }
-
-  .item-list {
-    display: grid;
-    gap: 10px;
-  }
-
-  .item-card {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 42px 1fr;
-    gap: 12px;
-    align-items: center;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: left;
-  }
-
-  .item-card:hover,
-  .action-button:hover,
-  .option-button:hover {
-    border-color: rgba(233, 69, 96, 0.7);
-    transform: translateY(-1px);
-  }
-
-  .item-icon {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    font-size: 22px;
-  }
-
-  .item-name {
-    display: block;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .item-brand {
-    display: block;
-    margin-top: 2px;
-    color: var(--panel-muted);
-    font-size: 12px;
-  }
-
-  .drag-hint {
-    display: block;
-    margin-top: 4px;
-    color: #81d4fa;
-    font-size: 11px;
-  }
-
-  .desk-stage {
-    position: relative;
-    min-width: 0;
-    height: 100vh;
-  }
-
-  #canvas-container {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .stage-header {
-    position: absolute;
-    top: 18px;
-    left: 20px;
-    right: 20px;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    pointer-events: none;
-  }
-
-  .stage-header h2 {
-    font-size: 18px;
-    line-height: 1.2;
-  }
-
-  .stage-header p {
-    margin-top: 4px;
-    color: rgba(255, 255, 255, 0.58);
-    font-size: 12px;
-  }
-
-  body.theme-light .stage-header,
-  body.theme-light .info {
-    color: #1f2937;
-  }
-
-  body.theme-light .stage-header p,
-  body.theme-light .info {
-    color: rgba(31, 41, 55, 0.62);
-  }
-
-  .desk-badge {
-    align-self: flex-start;
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    background: rgba(12, 18, 32, 0.55);
-    color: #fff;
-    font-size: 12px;
-    pointer-events: auto;
-  }
-
-  body.theme-light .desk-badge {
-    border-color: rgba(31, 41, 55, 0.16);
-    background: rgba(255, 255, 255, 0.72);
-    color: #1f2937;
-  }
-
-  .info {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    z-index: 10;
-    transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.44);
-    font-size: 12px;
-    text-align: center;
-    pointer-events: none;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-
-  .option-section {
-    padding: 16px 0;
-    border-top: 1px solid var(--line);
-  }
-
-  .option-section:first-of-type {
-    border-top: 0;
-    padding-top: 0;
-  }
-
-  .option-section h2 {
-    margin-bottom: 10px;
-    font-size: 15px;
-  }
-
-  .selected-item-preview {
-    min-height: 132px;
-    padding: 14px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .selected-item-preview.empty {
-    display: grid;
-    align-content: center;
-    gap: 6px;
-    color: var(--panel-muted);
-    font-size: 13px;
-    line-height: 1.45;
-  }
-
-  .selected-item-panel .action-button {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .selected-card {
-    display: grid;
-    grid-template-columns: 54px 1fr;
-    gap: 12px;
-    align-items: center;
-  }
-
-  .selected-icon {
-    width: 54px;
-    height: 54px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    font-size: 28px;
-  }
-
-  .selected-meta h3 {
-    font-size: 16px;
-    line-height: 1.2;
-  }
-
-  .selected-meta p {
-    margin-top: 5px;
-    color: var(--panel-muted);
-    font-size: 12px;
-  }
-
-  .option-row,
-  .size-grid,
-  .control-grid {
-    display: grid;
-    gap: 8px;
-  }
-
-  .option-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .size-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .control-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .save-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .option-button,
-  .action-button {
-    min-height: 40px;
-    padding: 9px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .size-button {
-    min-height: 58px;
-    line-height: 1.25;
-  }
-
-  .size-button span {
-    display: block;
-    margin-top: 4px;
-    color: var(--panel-muted);
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .danger {
-    border-color: rgba(233, 69, 96, 0.36);
-    background: rgba(233, 69, 96, 0.15);
-  }
-
-  .danger:hover {
-    background: rgba(233, 69, 96, 0.34);
-  }
-
-  .action-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-    transform: none;
-  }
-
-  .panel-note {
-    margin-top: 8px;
-    color: var(--panel-muted);
-    font-size: 12px;
-    line-height: 1.4;
-  }
-
-  @media (max-width: 1100px) {
-    .app-shell {
-      grid-template-columns: 230px minmax(0, 1fr) 280px;
-    }
-
-    .side-panel,
-    .option-panel {
-      padding: 18px 14px;
-    }
-  }
-
-  @media (max-width: 860px) {
-    body {
-      overflow: auto;
-    }
-
-    .app-shell {
-      height: auto;
-      min-height: 100vh;
-      grid-template-columns: 1fr;
-    }
-
-    .side-panel,
-    .option-panel {
-      height: auto;
-      max-height: none;
-      border: 0;
-    }
-
-    .desk-stage {
-      height: 68vh;
-      min-height: 460px;
-    }
-
-    .info {
-      width: calc(100% - 32px);
-      white-space: normal;
-    }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Desk Setup Builder</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        #topbar {
+            height: 60px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #2d3748;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .top-btn {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .top-btn:hover {
+            background-color: #edf2f7;
+        }
+
+        .top-btn.active {
+            background-color: #ebf4ff;
+            border-color: #bee3f8;
+            color: #3182ce;
+        }
+
+        #main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative; /* 우측 패널을 중앙 화면 위에 띄우기 위한 기준점 */
+        }
+
+        #sidebar {
+            width: 280px;
+            flex-shrink: 0; /* 창 크기가 좁아져도 왼쪽 메뉴바가 절대 찌그러지지 않도록 고정 */
+            background-color: #ffffff;
+            border-right: 1px solid #edf2f7;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .sidebar-header p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .item-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto; 
+            flex: 1;
+        }
+
+        .item-btn {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: row; 
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .item-btn:hover {
+            background-color: #ebf4ff;
+            border-color: #bee3f8;
+            color: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .item-icon {
+            font-size: 1.5rem;
+            margin-right: 12px;
+        }
+
+        /* 아코디언 메뉴 스타일 추가 */
+        .category-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-btn {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: row; 
+            align-items: center;
+            justify-content: space-between; /* 화살표를 우측 끝으로 */
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .item-btn-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .item-btn .arrow {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            transition: transform 0.3s;
+        }
+
+        .item-btn.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .model-list {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding-left: 12px;
+            margin-bottom: 8px;
+        }
+
+        .model-list.open {
+            display: flex;
+        }
+
+        .model-btn {
+            background-color: #f8fafc;
+            border: 1px solid #edf2f7;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .model-btn::before {
+            content: '↳';
+            position: absolute;
+            left: -12px;
+            top: 10px;
+            color: #cbd5e0;
+        }
+
+        .model-btn:hover {
+            background-color: #ebf4ff;
+            border-color: #bee3f8;
+            color: #3182ce;
+        }
+
+        #right-sidebar {
+            width: 420px;
+            position: absolute; /* 기존처럼 화면을 밀어내지 않고 중앙 화면 우측에 떠 있도록 설정 */
+            right: 0;
+            top: 0;
+            bottom: 0;
+            height: 100%;
+            background-color: #ffffff;
+            border-left: 1px solid #edf2f7;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.08); /* 캔버스와 구분되도록 그림자 추가 */
+            display: none; /* 클릭하기 전까지는 숨겨둠 */
+            flex-direction: column;
+            z-index: 50; /* 캔버스보다 위에 오도록 순서 조정 */
+        }
+
+        .setting-group {
+            padding: 20px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 12px;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 0;
+        }
+
+        .scale-slider {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        #selected-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0;
+        }
+
+        #canvas-container {
+            flex-grow: 1;
+            position: relative;
+            outline: none;
+            touch-action: none;
+        }
+
+        #action-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .action-btn {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-weight: 600;
+            color: #e53e3e;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background-color: #fff5f5;
+        }
+    </style>
 </head>
-<body class="theme-light desk-size-standard">
-
-<div class="app-shell">
-  <aside class="side-panel">
-    <div class="panel-title">
-      <p class="eyebrow">Item Category</p>
-      <h1>Desk Items</h1>
-      <p>카드를 클릭하면 중앙 데스크 위에 아이템이 추가됩니다.</p>
-    </div>
-
-    <div class="category-tabs" aria-label="Item categories">
-      <button class="active" type="button" data-category="all">All</button>
-      <button type="button" data-category="device">Device</button>
-      <button type="button" data-category="decor">Decor</button>
-    </div>
-
-    <div class="item-list" id="item-list"></div>
-  </aside>
-
-  <main class="desk-stage">
-    <div class="stage-header">
-      <div>
-        <p class="eyebrow">3D Viewport</p>
-        <h2>나만의 데스크 셋업</h2>
-        <p>기존 3D 회전과 확대/축소 조작을 유지합니다.</p>
-      </div>
-      <div class="desk-badge" id="desk-size-badge">Standard · 1400 x 700</div>
-    </div>
-
-    <div id="canvas-container"></div>
-    <div class="info">드래그: 아이템 이동 | 우클릭 드래그: 시점 회전 | 휠: 확대/축소 | 클릭: 아이템 선택</div>
-  </main>
-
-  <aside class="option-panel">
-    <div class="panel-title">
-      <p class="eyebrow">Options</p>
-      <h2>Setup Control</h2>
-      <p>선택한 아이템과 책상 상태를 관리합니다.</p>
-    </div>
-
-    <section class="option-section selected-item-panel">
-      <h2>Selected Item</h2>
-      <div class="selected-item-preview empty" id="selected-item-preview">
-        <p>선택된 아이템이 없습니다.</p>
-        <span>데스크 위 아이템을 클릭하면 정보가 표시됩니다.</span>
-      </div>
-      <button class="action-button danger" id="delete-selected-button" type="button" disabled>삭제</button>
-    </section>
-
-    <section class="option-section theme-panel">
-      <h2>Desk Surface / Theme</h2>
-      <div class="option-row">
-        <button class="option-button active" type="button" data-theme="light">Light</button>
-        <button class="option-button" type="button" data-theme="wood">Wood</button>
-        <button class="option-button" type="button" data-theme="dark">Dark</button>
-      </div>
-    </section>
-
-    <section class="option-section desk-size-panel">
-      <h2>Desk Size</h2>
-      <div class="size-grid">
-        <button class="option-button size-button" type="button" data-size="compact">Compact<span>1200 x 600</span></button>
-        <button class="option-button size-button active" type="button" data-size="standard">Standard<span>1400 x 700</span></button>
-        <button class="option-button size-button" type="button" data-size="wide">Wide<span>1600 x 800</span></button>
-        <button class="option-button size-button" type="button" data-size="ultra-wide">Ultra Wide<span>1800 x 800</span></button>
-      </div>
-    </section>
-
-    <section class="option-section work-control-panel">
-      <h2>Work Control</h2>
-      <div class="control-grid">
-        <button class="action-button" id="undo-button" type="button">Undo</button>
-        <button class="action-button" id="reset-button" type="button">Reset</button>
-        <button class="action-button danger" id="delete-all-button" type="button">Delete All</button>
-      </div>
-      <p class="panel-note">Undo는 Alpha Test 이후 히스토리 기능과 연결합니다.</p>
-    </section>
-
-    <section class="option-section save-panel">
-      <h2>Save / Download</h2>
-      <div class="save-grid">
-        <button class="action-button" id="save-button" type="button">Save</button>
-        <button class="action-button" id="download-button" type="button">Download</button>
-      </div>
-      <p class="panel-note">저장과 다운로드는 현재 UI 확인용 임시 버튼입니다.</p>
-    </section>
-  </aside>
-</div>
-
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-
-<script type="module">
-  import * as THREE from 'three';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-  import { DragControls } from 'three/addons/controls/DragControls.js';
-
-  const ITEM_DATA = {
-    monitor: { name: 'Curved Monitor', brand: 'ViewMax', model: 'VM-27Q', category: 'Monitor', group: 'device', icon: '🖥' },
-    laptop: { name: 'Slim Laptop', brand: 'NoteLab', model: 'NL Air 14', category: 'Computer', group: 'device', icon: '💻' },
-    keyboard: { name: 'Mechanical Keyboard', brand: 'KeyForge', model: 'KF TKL', category: 'Keyboard', group: 'device', icon: '⌨' },
-    mouse: { name: 'Wireless Mouse', brand: 'PointX', model: 'PX Mini', category: 'Mouse', group: 'device', icon: '🖱' },
-    speaker: { name: 'Desk Speaker', brand: 'SoundCube', model: 'SC-2', category: 'Audio', group: 'device', icon: '🔊' },
-    lamp: { name: 'Desk Lamp', brand: 'LightMood', model: 'LM Warm', category: 'Light', group: 'decor', icon: '💡' },
-    coffee: { name: 'Coffee Mug', brand: 'Daily Cup', model: 'Classic', category: 'Decor', group: 'decor', icon: '☕' },
-    tablet: { name: 'Tablet', brand: 'TabOne', model: 'T11', category: 'Device', group: 'device', icon: '📟' },
-    plant: { name: 'Mini Plant', brand: 'GreenDesk', model: 'Cactus', category: 'Decor', group: 'decor', icon: '🌵' },
-  };
-
-  const DESK_SIZE_DATA = {
-    compact: { label: 'Compact', badge: 'Compact · 1200 x 600', width: 5.1, depth: 2.55 },
-    standard: { label: 'Standard', badge: 'Standard · 1400 x 700', width: 6, depth: 3 },
-    wide: { label: 'Wide', badge: 'Wide · 1600 x 800', width: 6.9, depth: 3.45 },
-    'ultra-wide': { label: 'Ultra Wide', badge: 'Ultra Wide · 1800 x 800', width: 7.7, depth: 3.45 },
-  };
-
-  const THEME_DATA = {
-    light: { scene: 0xf3f7fb, floor: 0xdbe5ee, desk: 0xe8eef4, leg: 0x8391a3, grid: 0xb8c6d4 },
-    wood: { scene: 0xf0e0c7, floor: 0xc8a77a, desk: 0x9a6239, leg: 0x4a3022, grid: 0x8f6a45 },
-    dark: { scene: 0x0a0a1a, floor: 0x1a1a2e, desk: 0x2d2d44, leg: 0x333344, grid: 0x0f3460 },
-  };
-
-  const container = document.getElementById('canvas-container');
-  const itemList = document.getElementById('item-list');
-  const selectedPreview = document.getElementById('selected-item-preview');
-  const deleteSelectedButton = document.getElementById('delete-selected-button');
-  const deskSizeBadge = document.getElementById('desk-size-badge');
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(THEME_DATA.light.scene);
-
-  const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-  camera.position.set(8, 6, 10);
-  camera.lookAt(0, 0, 0);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
-  container.appendChild(renderer.domElement);
-
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0.5, 0);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.maxPolarAngle = Math.PI / 2.3;
-  controls.minDistance = 3;
-  controls.maxDistance = 20;
-  controls.update();
-
-  // --- Lighting ---
-  const ambient = new THREE.AmbientLight(0x404060, 0.6);
-  scene.add(ambient);
-
-  const mainLight = new THREE.DirectionalLight(0xffeedd, 1.8);
-  mainLight.position.set(5, 12, 8);
-  mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 2048;
-  mainLight.shadow.mapSize.height = 2048;
-  mainLight.shadow.camera.near = 0.5;
-  mainLight.shadow.camera.far = 30;
-  mainLight.shadow.camera.left = -10;
-  mainLight.shadow.camera.right = 10;
-  mainLight.shadow.camera.top = 10;
-  mainLight.shadow.camera.bottom = -10;
-  scene.add(mainLight);
-
-  const fillLight = new THREE.DirectionalLight(0x8888ff, 0.5);
-  fillLight.position.set(-4, 3, -6);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
-  rimLight.position.set(-3, 1, 5);
-  scene.add(rimLight);
-
-  // --- Floor / Room ---
-  const floorGeo = new THREE.PlaneGeometry(14, 14);
-  const floorMat = new THREE.MeshStandardMaterial({
-    color: THEME_DATA.light.floor, roughness: 0.8, metalness: 0.1,
-  });
-  const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -0.01;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  const gridHelper = new THREE.GridHelper(14, 20, THEME_DATA.light.grid, THEME_DATA.light.grid);
-  gridHelper.position.y = 0;
-  scene.add(gridHelper);
-
-  // --- Desk ---
-  const deskMat = new THREE.MeshStandardMaterial({
-    color: THEME_DATA.light.desk, roughness: 0.6, metalness: 0.1,
-  });
-  const deskTop = new THREE.Mesh(new THREE.BoxGeometry(6, 0.15, 3), deskMat);
-  deskTop.position.y = 0.6;
-  deskTop.castShadow = true;
-  deskTop.receiveShadow = true;
-  scene.add(deskTop);
-
-  const legMat = new THREE.MeshStandardMaterial({ color: THEME_DATA.light.leg, roughness: 0.7, metalness: 0.3 });
-  const deskLegs = [];
-
-  function createDeskLeg(x, z) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 8), legMat);
-    leg.position.set(x, 0.3, z);
-    leg.castShadow = true;
-    scene.add(leg);
-    deskLegs.push(leg);
-  }
-
-  createDeskLeg(-2.6, -1.2);
-  createDeskLeg(2.6, -1.2);
-  createDeskLeg(-2.6, 1.2);
-  createDeskLeg(2.6, 1.2);
-
-  // --- Items storage ---
-  const items = [];
-  const STORAGE_KEY = 'myDeskSetupState';
-  const HISTORY_LIMIT = 30;
-  const historyStack = [];
-  let dragControls;
-  let selectedItem = null;
-  let selectedHelper = null;
-  let currentTheme = 'light';
-  let currentDeskSize = 'standard';
-  let isRestoringState = false;
-  let pointerDownInfo = null;
-
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-
-  function renderItemList(category = 'all') {
-    const itemEntries = Object.entries(ITEM_DATA).filter(([, item]) => {
-      return category === 'all' || item.group === category;
-    });
-
-    itemList.innerHTML = itemEntries.map(([type, item]) => `
-      <button class="item-card" type="button" data-add-item="${type}">
-        <span class="item-icon">${item.icon}</span>
-        <span>
-          <span class="item-name">${item.name}</span>
-          <span class="item-brand">${item.brand}</span>
-          <span class="drag-hint">클릭해서 데스크에 추가</span>
-        </span>
-      </button>
-    `).join('');
-
-    itemList.querySelectorAll('[data-add-item]').forEach(button => {
-      button.addEventListener('click', () => addItem(button.dataset.addItem));
-    });
-  }
-
-  function createItemMesh(type) {
-    const group = new THREE.Group();
-    let mat;
-
-    const colors = {
-      monitor: 0x3498db, laptop: 0x9b59b6, keyboard: 0x2ecc71, mouse: 0xf1c40f,
-      speaker: 0x95a5a6, lamp: 0xe67e22, coffee: 0xa0643c, tablet: 0x34495e,
-      plant: 0x27ae60,
-    };
-    const color = colors[type] || 0xe94560;
-    mat = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.2 });
-
-    switch (type) {
-      case 'monitor': {
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.7, 0.06), mat);
-        screen.position.y = 0.35;
-        screen.castShadow = true;
-        group.add(screen);
-        const stand = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.05, 0.08, 0.2, 8),
-          new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 })
-        );
-        stand.position.y = 0.1;
-        group.add(stand);
-        const base = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.03, 0.15),
-          new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 })
-        );
-        base.position.y = 0.015;
-        group.add(base);
-        break;
-      }
-      case 'laptop': {
-        const base = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.6), mat);
-        base.position.y = 0.02;
-        base.castShadow = true;
-        group.add(base);
-        const screenMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.3, metalness: 0.3 });
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.55, 0.03), screenMat);
-        screen.position.set(0, 0.3, -0.25);
-        screen.rotation.x = -0.3;
-        group.add(screen);
-        break;
-      }
-      case 'keyboard': {
-        const kb = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.25), mat);
-        kb.position.y = 0.02;
-        kb.castShadow = true;
-        group.add(kb);
-        const keys = new THREE.Mesh(
-          new THREE.BoxGeometry(0.7, 0.03, 0.18),
-          new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.6 })
-        );
-        keys.position.y = 0.045;
-        group.add(keys);
-        break;
-      }
-      case 'mouse': {
-        const mouse = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), mat);
-        mouse.scale.set(1, 0.5, 1.4);
-        mouse.position.y = 0.06;
-        mouse.castShadow = true;
-        group.add(mouse);
-        break;
-      }
-      case 'speaker': {
-        const speaker = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.3, 16), mat);
-        speaker.position.y = 0.15;
-        speaker.castShadow = true;
-        group.add(speaker);
-        const grille = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.08, 0.1, 0.02, 16),
-          new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.8 })
-        );
-        grille.position.y = 0.15;
-        grille.position.z = 0.12;
-        group.add(grille);
-        break;
-      }
-      case 'lamp': {
-        const armMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4, metalness: 0.7 });
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.03, 12), armMat);
-        base.position.y = 0.015;
-        group.add(base);
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.35, 8), armMat);
-        pole.position.y = 0.19;
-        group.add(pole);
-        const headMat = new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.3, emissive: 0xffdd44, emissiveIntensity: 0.1 });
-        const head = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.08, 12), headMat);
-        head.position.set(0, 0.38, -0.06);
-        head.rotation.x = 0.3;
-        group.add(head);
-        break;
-      }
-      case 'coffee': {
-        const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.12, 12), mat);
-        mug.position.y = 0.06;
-        mug.castShadow = true;
-        group.add(mug);
-        const handle = new THREE.Mesh(
-          new THREE.TorusGeometry(0.04, 0.015, 8, 12, Math.PI),
-          new THREE.MeshStandardMaterial({ color: 0xa0643c, roughness: 0.6 })
-        );
-        handle.position.set(0.09, 0.08, 0);
-        handle.rotation.z = Math.PI / 2;
-        group.add(handle);
-        break;
-      }
-      case 'tablet': {
-        const tab = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.35), mat);
-        tab.position.y = 0.01;
-        tab.castShadow = true;
-        group.add(tab);
-        const screenMat = new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.2 });
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.01, 0.29), screenMat);
-        screen.position.y = 0.025;
-        group.add(screen);
-        break;
-      }
-      case 'plant': {
-        const potMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.7 });
-        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.12, 8), potMat);
-        pot.position.y = 0.06;
-        group.add(pot);
-        const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), mat);
-        leaves.position.y = 0.16;
-        leaves.scale.set(1, 0.8, 1);
-        group.add(leaves);
-        const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), mat);
-        leaf2.position.set(0.06, 0.2, 0.06);
-        group.add(leaf2);
-        break;
-      }
-    }
-
-    group.children.forEach(child => {
-      if (child.isMesh) child.receiveShadow = true;
-    });
-
-    return group;
-  }
-
-  function getDeskBounds() {
-    const size = DESK_SIZE_DATA[currentDeskSize];
-    return {
-      halfW: size.width / 2 - 0.22,
-      halfZ: size.depth / 2 - 0.18,
-    };
-  }
-
-  function getSetupState() {
-    return {
-      items: items.map(item => ({
-        type: item.userData.type,
-        position: {
-          x: item.position.x,
-          y: item.position.y,
-          z: item.position.z,
-        },
-      })),
-      theme: currentTheme,
-      deskSize: currentDeskSize,
-    };
-  }
-
-  function pushHistory() {
-    if (isRestoringState) return;
-
-    const snapshot = JSON.parse(JSON.stringify(getSetupState()));
-    historyStack.push(snapshot);
-
-    if (historyStack.length > HISTORY_LIMIT) {
-      historyStack.shift();
-    }
-  }
-
-  function getSafePosition(position) {
-    const fallback = { x: 0, y: 0.68, z: 0 };
-    if (!position) return fallback;
-
-    return {
-      x: Number.isFinite(Number(position.x)) ? Number(position.x) : fallback.x,
-      y: Number.isFinite(Number(position.y)) ? Number(position.y) : fallback.y,
-      z: Number.isFinite(Number(position.z)) ? Number(position.z) : fallback.z,
-    };
-  }
-
-  function restoreSetupState(state) {
-    if (!state || typeof state !== 'object') return false;
-
-    isRestoringState = true;
-    try {
-      const restoredTheme = THEME_DATA[state.theme] ? state.theme : 'light';
-      const restoredDeskSize = DESK_SIZE_DATA[state.deskSize] ? state.deskSize : 'standard';
-      const restoredItems = Array.isArray(state.items) ? state.items : [];
-
-      clearAll({ skipHistory: true });
-      changeTheme(restoredTheme, { skipHistory: true });
-      changeDeskSize(restoredDeskSize, { skipHistory: true });
-
-      restoredItems.forEach(savedItem => {
-        if (!savedItem || !ITEM_DATA[savedItem.type]) return;
-
-        addItem(savedItem.type, {
-          position: getSafePosition(savedItem.position),
-          select: false,
-          skipHistory: true,
-        });
-      });
-
-      selectItem(null);
-      initDragControls();
-      return true;
-    } finally {
-      isRestoringState = false;
-    }
-  }
-
-  function loadSavedSetup() {
-    try {
-      const savedState = localStorage.getItem(STORAGE_KEY);
-      if (!savedState) return false;
-
-      const parsedState = JSON.parse(savedState);
-      const restored = restoreSetupState(parsedState);
-      if (restored) console.log('saved setup loaded');
-      return restored;
-    } catch (error) {
-      console.warn('saved setup load failed', error);
-      return false;
-    }
-  }
-
-  function addItem(type, options = {}) {
-    if (!ITEM_DATA[type]) return null;
-    if (!options.skipHistory && !isRestoringState) pushHistory();
-
-    const group = createItemMesh(type);
-    const bounds = getDeskBounds();
-
-    group.userData.isDragable = true;
-    group.userData.type = type;
-    group.userData.itemId = `${type}-${Date.now()}-${items.length}`;
-    group.traverse(child => {
-      if (child.isMesh) {
-        child.userData.isDragable = true;
-        child.userData.itemId = group.userData.itemId;
-      }
-    });
-
-    if (options.position) {
-      const position = getSafePosition(options.position);
-      group.position.set(position.x, position.y, position.z);
-    } else {
-      const x = (Math.random() - 0.5) * bounds.halfW * 1.6;
-      const z = (Math.random() - 0.5) * bounds.halfZ * 1.6;
-      group.position.set(x, 0.68, z);
-    }
-
-    scene.add(group);
-    items.push(group);
-
-    initDragControls();
-    if (options.select !== false) selectItem(group);
-    return group;
-  }
-
-  function disposeDragControls() {
-    if (dragControls) {
-      dragControls.dispose();
-      dragControls = null;
-    }
-  }
-
-  function initDragControls() {
-    disposeDragControls();
-    if (items.length === 0) return;
-
-    dragControls = new DragControls(items, camera, renderer.domElement);
-    dragControls.addEventListener('dragstart', e => {
-      controls.enabled = false;
-      selectItem(e.object);
-      e.object.position.y = 1.0;
-    });
-    dragControls.addEventListener('drag', e => {
-      const bounds = getDeskBounds();
-      e.object.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, e.object.position.x));
-      e.object.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, e.object.position.z));
-    });
-    dragControls.addEventListener('dragend', e => {
-      controls.enabled = true;
-      e.object.position.y = 0.68;
-    });
-  }
-
-  function clearSelectedHelper() {
-    if (selectedHelper) {
-      scene.remove(selectedHelper);
-      if (selectedHelper.geometry) selectedHelper.geometry.dispose();
-      if (selectedHelper.material) selectedHelper.material.dispose();
-      selectedHelper = null;
-    }
-  }
-
-  function selectItem(item) {
-    selectedItem = item || null;
-    clearSelectedHelper();
-
-    if (selectedItem) {
-      selectedHelper = new THREE.BoxHelper(selectedItem, 0xe94560);
-      scene.add(selectedHelper);
-    }
-
-    renderSelectedItemPanel();
-  }
-
-  function renderSelectedItemPanel() {
-    if (!selectedItem) {
-      selectedPreview.classList.add('empty');
-      selectedPreview.innerHTML = `
-        <p>선택된 아이템이 없습니다.</p>
-        <span>데스크 위 아이템을 클릭하면 정보가 표시됩니다.</span>
-      `;
-      deleteSelectedButton.disabled = true;
-      return;
-    }
-
-    const type = selectedItem.userData.type;
-    const item = ITEM_DATA[type] || { name: type, brand: 'Unknown', model: '-', category: 'Item', icon: '□' };
-
-    selectedPreview.classList.remove('empty');
-    selectedPreview.innerHTML = `
-      <div class="selected-card">
-        <div class="selected-icon">${item.icon}</div>
-        <div class="selected-meta">
-          <h3>${item.name}</h3>
-          <p>Brand: ${item.brand}</p>
-          <p>Model: ${item.model}</p>
-          <p>Category: ${item.category}</p>
+<body>
+
+    <div id="topbar">
+        <div class="logo">DeskSpacing Clone</div>
+        <div class="top-actions">
+            <button class="top-btn active" id="btn-day">☀️ 낮 모드</button>
+            <button class="top-btn" id="btn-night">🌙 밤 모드</button>
+            <div style="width: 1px; background-color: #e2e8f0; margin: 0 8px;"></div>
+            <button class="top-btn" id="btn-save">💾 저장</button>
+            <button class="top-btn" id="btn-download">📷 다운로드</button>
         </div>
-      </div>
-    `;
-    deleteSelectedButton.disabled = false;
-  }
+    </div>
 
-  function deleteSelectedItem(options = {}) {
-    if (!selectedItem) return;
-    if (!options.skipHistory && !isRestoringState) pushHistory();
+    <div id="main-content">
+        <!-- 좌측 사이드바 -->
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <p>버튼을 클릭하여 원하는 가구를 배치하세요.<br><br>💡 <b>오브젝트를 클릭하면 우측에 크기/색상 설정 창이 나타납니다.</b></p>
+            </div>
+            <div class="item-list">
+                <div class="category-group">
+                    <button class="item-btn" data-category="monitor"><div class="item-btn-content"><span class="item-icon">🖥️</span>모니터</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-monitor">
+                        <button class="model-btn" data-type="monitor" data-model="standard">스탠다드 모니터</button>
+                        <button class="model-btn" data-type="monitor" data-model="ultrawide">울트라와이드 모니터</button>
+                    </div>
+                </div>
 
-    const target = selectedItem;
-    const index = items.indexOf(target);
-    if (index > -1) items.splice(index, 1);
+                <div class="category-group">
+                    <button class="item-btn" data-category="keyboard"><div class="item-btn-content"><span class="item-icon">⌨️</span>키보드</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-keyboard">
+                        <button class="model-btn" data-type="keyboard" data-model="standard">풀배열 키보드</button>
+                        <button class="model-btn" data-type="keyboard" data-model="compact">텐키리스 (미니)</button>
+                    </div>
+                </div>
 
-    scene.remove(target);
-    selectItem(null);
-    initDragControls();
-  }
+                <div class="category-group">
+                    <button class="item-btn" data-category="mouse"><div class="item-btn-content"><span class="item-icon">🖱️</span>마우스</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-mouse">
+                        <button class="model-btn" data-type="mouse" data-model="standard">일반 마우스</button>
+                        <button class="model-btn" data-type="mouse" data-model="vertical">버티컬 마우스</button>
+                    </div>
+                </div>
 
-  function clearAll(options = {}) {
-    if (!options.skipHistory && !isRestoringState && items.length > 0) pushHistory();
+                <div class="category-group">
+                    <button class="item-btn" data-category="laptop"><div class="item-btn-content"><span class="item-icon">💻</span>노트북</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-laptop">
+                        <button class="model-btn" data-type="laptop" data-model="standard">스탠다드 랩탑</button>
+                        <button class="model-btn" data-type="laptop" data-model="slim">슬림형 랩탑</button>
+                    </div>
+                </div>
 
-    items.forEach(item => scene.remove(item));
-    items.length = 0;
-    selectItem(null);
-    disposeDragControls();
-  }
+                <div class="category-group">
+                    <button class="item-btn" data-category="pc"><div class="item-btn-content"><span class="item-icon">🗄️</span>본체</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-pc">
+                        <button class="model-btn" data-type="pc" data-model="standard">미들타워 본체</button>
+                        <button class="model-btn" data-type="pc" data-model="glass">어항형 (유리) 본체</button>
+                    </div>
+                </div>
 
-  function resetDeskSetup(options = {}) {
-    const hasChanges = items.length > 0 || currentTheme !== 'light' || currentDeskSize !== 'standard';
-    if (!options.skipHistory && !isRestoringState && hasChanges) pushHistory();
+                <div class="category-group">
+                    <button class="item-btn" data-category="speaker"><div class="item-btn-content"><span class="item-icon">🔈</span>스피커</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-speaker">
+                        <button class="model-btn" data-type="speaker" data-model="standard">북쉘프 스피커</button>
+                        <button class="model-btn" data-type="speaker" data-model="soundbar">사운드바</button>
+                    </div>
+                </div>
 
-    clearAll({ skipHistory: true });
-    changeTheme('light', { skipHistory: true });
-    changeDeskSize('standard', { skipHistory: true });
-  }
+                <div class="category-group">
+                    <button class="item-btn" data-category="mic"><div class="item-btn-content"><span class="item-icon">🎙️</span>마이크</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-mic">
+                        <button class="model-btn" data-type="mic" data-model="standard">스탠드 마이크</button>
+                        <button class="model-btn" data-type="mic" data-model="arm">관절형 암 마이크</button>
+                    </div>
+                </div>
 
-  function updateGridColor(color) {
-    if (Array.isArray(gridHelper.material)) {
-      gridHelper.material.forEach(material => material.color.setHex(color));
-    } else {
-      gridHelper.material.color.setHex(color);
-    }
-  }
+                <div class="category-group">
+                    <button class="item-btn" data-category="lamp"><div class="item-btn-content"><span class="item-icon">💡</span>조명</div><span class="arrow">▼</span></button>
+                    <div class="model-list" id="list-lamp">
+                        <button class="model-btn" data-type="lamp" data-model="standard">데스크 램프</button>
+                        <button class="model-btn" data-type="lamp" data-model="lightbar">모니터 조명 (라이트바)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  function changeTheme(themeName, options = {}) {
-    const theme = THEME_DATA[themeName];
-    if (!theme) return;
-    if (themeName === currentTheme && !isRestoringState) return;
-    if (!options.skipHistory && !isRestoringState) pushHistory();
+        <!-- 3D 렌더링 영역 -->
+        <div id="canvas-container">
+            <div id="action-panel">
+                <button class="action-btn" id="clear-btn">🗑️ 모두 지우기</button>
+            </div>
+        </div>
 
-    currentTheme = themeName;
-    document.body.classList.remove('theme-light', 'theme-wood', 'theme-dark');
-    document.body.classList.add(`theme-${themeName}`);
+        <div id="right-sidebar">
+            <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <p id="selected-title">선택된 오브젝트</p>
+                <button id="close-right-sidebar" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color:#a0aec0;">✕</button>
+            </div>
+            <div class="setting-group">
+                <label>🎨 색상 / 테마 변경</label>
+                <input type="color" id="item-color" class="color-picker" value="#ffffff">
+            </div>
+            <div class="setting-group">
+                <label>📏 크기 조절 (<span id="scale-value">1.0</span>x)</label>
+                <input type="range" id="item-scale" class="scale-slider" min="0.5" max="2.0" step="0.1" value="1">
+            </div>
+            <div class="setting-group">
+                <button class="action-btn" id="delete-item-btn" style="width: 100%; text-align: center;">🗑️ 이 오브젝트 삭제</button>
+            </div>
+        </div>
+    </div>
 
-    document.querySelectorAll('[data-theme]').forEach(button => {
-      button.classList.toggle('active', button.dataset.theme === themeName);
-    });
+    <!-- Three.js 및 OrbitControls 라이브러리 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    scene.background.setHex(theme.scene);
-    floorMat.color.setHex(theme.floor);
-    deskMat.color.setHex(theme.desk);
-    legMat.color.setHex(theme.leg);
-    updateGridColor(theme.grid);
-  }
+    <script>
+        const canvasContainer = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#f5f7fa'); 
 
-  function updateDeskLegs(width, depth) {
-    const x = width / 2 - 0.4;
-    const z = depth / 2 - 0.3;
-    const positions = [[-x, -z], [x, -z], [-x, z], [x, z]];
+        const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+        camera.position.set(0, 30, 60);
 
-    deskLegs.forEach((leg, index) => {
-      leg.position.x = positions[index][0];
-      leg.position.z = positions[index][1];
-    });
-  }
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+        canvasContainer.appendChild(renderer.domElement);
 
-  function clampItemsToDesk() {
-    const bounds = getDeskBounds();
-    items.forEach(item => {
-      item.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, item.position.x));
-      item.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, item.position.z));
-    });
-  }
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); 
+        scene.add(ambientLight);
 
-  function changeDeskSize(sizeName, options = {}) {
-    const size = DESK_SIZE_DATA[sizeName];
-    if (!size) return;
-    if (sizeName === currentDeskSize && !isRestoringState) return;
-    if (!options.skipHistory && !isRestoringState) pushHistory();
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(20, 40, 20);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
 
-    currentDeskSize = sizeName;
-    document.body.classList.remove('desk-size-compact', 'desk-size-standard', 'desk-size-wide', 'desk-size-ultra-wide');
-    document.body.classList.add(`desk-size-${sizeName}`);
+        const pointLight = new THREE.PointLight(0xffaa00, 0, 50); 
+        pointLight.position.set(0, 15, 0);
+        scene.add(pointLight);
 
-    document.querySelectorAll('[data-size]').forEach(button => {
-      button.classList.toggle('active', button.dataset.size === sizeName);
-    });
+        const floorGeo = new THREE.PlaneGeometry(200, 200);
+        const floorMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.8 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
 
-    deskTop.scale.set(size.width / 6, 1, size.depth / 3);
-    updateDeskLegs(size.width, size.depth);
-    clampItemsToDesk();
-    deskSizeBadge.textContent = size.badge;
-  }
+        const gridHelper = new THREE.GridHelper(200, 50, 0x000000, 0x000000);
+        gridHelper.material.opacity = 0.05;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
 
-  function handleUndo() {
-    if (historyStack.length === 0) {
-      console.log('undo history is empty');
-      return;
-    }
+        const deskTopY = 10;
+        const deskWidth = 30;
+        const deskDepth = 15;
+        const deskGeo = new THREE.BoxGeometry(deskWidth, 1, deskDepth);
+        const deskMat = new THREE.MeshStandardMaterial({ color: '#e2a76f', roughness: 0.6, metalness: 0.1 });
+        const desk = new THREE.Mesh(deskGeo, deskMat);
+        desk.position.set(0, deskTopY, 0);
+        desk.receiveShadow = true;
+        desk.castShadow = true;
+        scene.add(desk);
 
-    const previousState = historyStack.pop();
-    restoreSetupState(previousState);
-  }
+        const legGeo = new THREE.BoxGeometry(1, deskTopY, 1);
+        const legMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+        const legPositions = [
+            [-deskWidth/2 + 1, deskTopY/2, -deskDepth/2 + 1],
+            [deskWidth/2 - 1, deskTopY/2, -deskDepth/2 + 1],
+            [-deskWidth/2 + 1, deskTopY/2, deskDepth/2 - 1],
+            [deskWidth/2 - 1, deskTopY/2, deskDepth/2 - 1]
+        ];
+        
+        legPositions.forEach(pos => {
+            const leg = new THREE.Mesh(legGeo, legMat);
+            leg.position.set(pos[0], pos[1], pos[2]);
+            leg.castShadow = true;
+            leg.receiveShadow = true;
+            scene.add(leg);
+        });
 
-  function handleSave() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(getSetupState()));
-      console.log('setup saved');
-      alert('저장되었습니다.');
-    } catch (error) {
-      console.warn('setup save failed', error);
-    }
-  }
+        const addedItems = []; 
 
-  function handleDownload() {
-    try {
-      controls.update();
-      renderer.render(scene, camera);
+        function createItem(type, model = 'standard', posX, posZ, scaleVal = 1, colorHex = null) {
+            const itemGroup = new THREE.Group(); 
+            itemGroup.userData.isDraggable = true; 
+            itemGroup.userData.type = type; 
+            itemGroup.userData.model = model; // 선택한 모델 정보도 저장
 
-      const imageUrl = renderer.domElement.toDataURL('image/png');
-      const downloadLink = document.createElement('a');
-      downloadLink.href = imageUrl;
-      downloadLink.download = 'my-desk-setup.png';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-    } catch (error) {
-      console.warn('download failed', error);
-    }
-  }
+            const x = posX !== undefined ? posX : (Math.random() - 0.5) * (deskWidth - 10);
+            const z = posZ !== undefined ? posZ : (Math.random() - 0.5) * (deskDepth - 5);
+            itemGroup.position.set(x, deskTopY + 0.5, z); 
 
-  function getItemRoot(object) {
-    let current = object;
-    while (current) {
-      if (items.includes(current)) return current;
-      current = current.parent;
-    }
-    return null;
-  }
+            if (type === 'monitor') {
+                const width = (model === 'ultrawide') ? 18 : 12; // 울트라와이드는 가로를 길게
+                
+                const panelGeo = new THREE.BoxGeometry(width, 7, 0.5);
+                const panelMat = new THREE.MeshStandardMaterial({ color: '#1a202c', roughness: 0.2 });
+                const panel = new THREE.Mesh(panelGeo, panelMat);
+                panel.userData.colorable = true; 
+                panel.position.y = 4.5;
+                panel.castShadow = true;
+                
+                const screenGeo = new THREE.PlaneGeometry(width - 0.5, 6.5);
+                const screenMat = new THREE.MeshBasicMaterial({ color: '#2d3748' });
+                const screen = new THREE.Mesh(screenGeo, screenMat);
+                screen.position.set(0, 4.5, 0.26);
 
-  function selectFromPointer(event) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                const standGeo = new THREE.CylinderGeometry(0.3, 0.3, 3);
+                const standMat = new THREE.MeshStandardMaterial({ color: '#718096' });
+                const stand = new THREE.Mesh(standGeo, standMat);
+                stand.position.y = 1.5;
+                stand.castShadow = true;
 
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(items, true);
+                const baseGeo = new THREE.BoxGeometry(4, 0.2, 3);
+                const baseMat = new THREE.MeshStandardMaterial({ color: '#4a5568' });
+                const base = new THREE.Mesh(baseGeo, baseMat);
+                base.position.y = -0.1;
+                base.castShadow = true;
 
-    if (intersects.length > 0) {
-      selectItem(getItemRoot(intersects[0].object));
-    } else {
-      selectItem(null);
-    }
-  }
+                itemGroup.add(panel, screen, stand, base);
+            } 
+            else if (type === 'keyboard') {
+                const width = (model === 'compact') ? 4.5 : 6.5; // 텐키리스는 짧게
+                
+                const kbGeo = new THREE.BoxGeometry(width, 0.3, 2.5);
+                const kbMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0' });
+                const kb = new THREE.Mesh(kbGeo, kbMat);
+                kb.userData.colorable = true;
+                kb.position.y = 0.15;
+                kb.castShadow = true;
+                itemGroup.add(kb);
+            }
+            else if (type === 'mouse') {
+                let mouseGeo;
+                if (model === 'vertical') {
+                    // 버티컬 마우스는 높고 비대칭적인 느낌
+                    mouseGeo = new THREE.BoxGeometry(1.4, 1.2, 2);
+                } else {
+                    mouseGeo = new THREE.BoxGeometry(1.2, 0.4, 2);
+                }
+                
+                const mouseMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0' });
+                const mouseMesh = new THREE.Mesh(mouseGeo, mouseMat);
+                mouseMesh.userData.colorable = true;
+                mouseMesh.position.y = (model === 'vertical') ? 0.6 : 0.2;
+                mouseMesh.castShadow = true;
+                itemGroup.add(mouseMesh);
+            }
+            else if (type === 'laptop') {
+                const thickness = (model === 'slim') ? 0.15 : 0.3;
+                const baseGeo = new THREE.BoxGeometry(8, thickness, 6);
+                const baseMat = new THREE.MeshStandardMaterial({ color: '#cbd5e0', metalness: 0.5 });
+                const laptopBase = new THREE.Mesh(baseGeo, baseMat);
+                laptopBase.userData.colorable = true;
+                laptopBase.position.y = thickness / 2;
+                laptopBase.castShadow = true;
+                
+                const screenGroup = new THREE.Group();
+                const lidGeo = new THREE.BoxGeometry(8, 5, thickness);
+                const lidMat = new THREE.MeshStandardMaterial({ color: '#cbd5e0', metalness: 0.5 });
+                const lid = new THREE.Mesh(lidGeo, lidMat);
+                lid.userData.colorable = true;
+                lid.position.y = 2.5; 
+                
+                const displayGeo = new THREE.PlaneGeometry(7.5, 4.5);
+                const displayMat = new THREE.MeshBasicMaterial({ color: '#1a202c' });
+                const display = new THREE.Mesh(displayGeo, displayMat);
+                display.position.set(0, 2.5, (thickness/2) + 0.01);
 
-  renderer.domElement.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    pointerDownInfo = {
-      x: event.clientX,
-      y: event.clientY,
-      time: Date.now(),
-    };
-  });
+                screenGroup.add(lid, display);
+                screenGroup.position.set(0, thickness, -2.8);
+                screenGroup.rotation.x = -Math.PI / 8;
+                
+                itemGroup.add(laptopBase, screenGroup);
+            }
+            else if (type === 'pc') {
+                if (model === 'glass') {
+                    // 어항형 본체 (투명 유리 패널 추가)
+                    const pcGeo = new THREE.BoxGeometry(4.5, 9, 8);
+                    const pcMat = new THREE.MeshStandardMaterial({ color: '#ffffff' });
+                    const pc = new THREE.Mesh(pcGeo, pcMat);
+                    pc.userData.colorable = true;
+                    pc.position.y = 4.5;
+                    pc.castShadow = true;
+                    
+                    const glassGeo = new THREE.BoxGeometry(4.6, 8.5, 7.5);
+                    const glassMat = new THREE.MeshStandardMaterial({ color: '#87ceeb', transparent: true, opacity: 0.4, roughness: 0.1 });
+                    const glass = new THREE.Mesh(glassGeo, glassMat);
+                    glass.position.set(0.1, 4.5, 0);
+                    
+                    itemGroup.add(pc, glass);
+                } else {
+                    // 일반 본체
+                    const pcGeo = new THREE.BoxGeometry(4, 9, 8);
+                    const pcMat = new THREE.MeshStandardMaterial({ color: '#1a202c' });
+                    const pc = new THREE.Mesh(pcGeo, pcMat);
+                    pc.userData.colorable = true;
+                    pc.position.y = 4.5;
+                    pc.castShadow = true;
+                    
+                    const frontGeo = new THREE.PlaneGeometry(3.5, 8.5);
+                    const frontMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const front = new THREE.Mesh(frontGeo, frontMat);
+                    front.position.set(0, 4.5, 4.01);
+                    
+                    itemGroup.add(pc, front);
+                }
+            }
+            else if (type === 'speaker') {
+                if (model === 'soundbar') {
+                    // 사운드바
+                    const barGeo = new THREE.BoxGeometry(10, 1.5, 1.5);
+                    const barMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const bar = new THREE.Mesh(barGeo, barMat);
+                    bar.userData.colorable = true;
+                    bar.position.y = 0.75;
+                    bar.castShadow = true;
+                    itemGroup.add(bar);
+                } else {
+                    // 북쉘프 스피커
+                    const boxGeo = new THREE.BoxGeometry(2.5, 4.5, 3);
+                    const boxMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const box = new THREE.Mesh(boxGeo, boxMat);
+                    box.userData.colorable = true;
+                    box.position.y = 2.25;
+                    box.castShadow = true;
 
-  renderer.domElement.addEventListener('pointerup', event => {
-    if (event.button !== 0 || !pointerDownInfo) return;
+                    const tweeterGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 16);
+                    const tweeterMat = new THREE.MeshStandardMaterial({ color: '#1a202c' });
+                    const tweeter = new THREE.Mesh(tweeterGeo, tweeterMat);
+                    tweeter.rotation.x = Math.PI / 2;
+                    tweeter.position.set(0, 3.2, 1.5);
+                    
+                    const wooferGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.2, 16);
+                    const wooferMat = new THREE.MeshStandardMaterial({ color: '#1a202c' });
+                    const woofer = new THREE.Mesh(wooferGeo, wooferMat);
+                    woofer.rotation.x = Math.PI / 2;
+                    woofer.position.set(0, 1.3, 1.5);
 
-    const moveDistance = Math.hypot(event.clientX - pointerDownInfo.x, event.clientY - pointerDownInfo.y);
-    const elapsedTime = Date.now() - pointerDownInfo.time;
-    pointerDownInfo = null;
+                    itemGroup.add(box, tweeter, woofer);
+                }
+            }
+            else if (type === 'mic') {
+                if (model === 'arm') {
+                    // 관절형 암 마이크
+                    const baseGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.5);
+                    const baseMat = new THREE.MeshStandardMaterial({ color: '#4a5568' });
+                    const base = new THREE.Mesh(baseGeo, baseMat);
+                    base.position.y = 0.25;
 
-    if (moveDistance > 6 || elapsedTime > 350) return;
-    selectFromPointer(event);
-  });
+                    const arm1Geo = new THREE.CylinderGeometry(0.15, 0.15, 4);
+                    const arm1Mat = new THREE.MeshStandardMaterial({ color: '#1a202c' });
+                    const arm1 = new THREE.Mesh(arm1Geo, arm1Mat);
+                    arm1.position.set(1.5, 2, 0);
+                    arm1.rotation.z = Math.PI / 4;
 
-  document.querySelectorAll('[data-theme]').forEach(button => {
-    button.addEventListener('click', () => changeTheme(button.dataset.theme));
-  });
+                    const arm2Geo = new THREE.CylinderGeometry(0.15, 0.15, 3);
+                    const arm2 = new THREE.Mesh(arm2Geo, arm1Mat);
+                    arm2.position.set(4, 4, 0);
+                    arm2.rotation.z = -Math.PI / 6;
 
-  document.querySelectorAll('[data-size]').forEach(button => {
-    button.addEventListener('click', () => changeDeskSize(button.dataset.size));
-  });
+                    const headGeo = new THREE.CylinderGeometry(0.6, 0.6, 1.5, 16);
+                    const headMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0', metalness: 0.6 });
+                    const head = new THREE.Mesh(headGeo, headMat);
+                    head.userData.colorable = true;
+                    head.position.set(5.5, 4.5, 0);
+                    head.rotation.z = Math.PI / 2;
+                    
+                    itemGroup.add(base, arm1, arm2, head);
+                } else {
+                    // 스탠드 마이크
+                    const baseGeo = new THREE.CylinderGeometry(1, 1, 0.2);
+                    const baseMat = new THREE.MeshStandardMaterial({ color: '#4a5568' });
+                    const base = new THREE.Mesh(baseGeo, baseMat);
+                    base.userData.colorable = true;
+                    base.position.y = 0.1;
+                    base.castShadow = true;
 
-  document.querySelectorAll('[data-category]').forEach(button => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('[data-category]').forEach(tab => {
-        tab.classList.toggle('active', tab === button);
-      });
-      renderItemList(button.dataset.category);
-    });
-  });
+                    const standGeo = new THREE.CylinderGeometry(0.1, 0.1, 2);
+                    const standMat = new THREE.MeshStandardMaterial({ color: '#718096' });
+                    const stand = new THREE.Mesh(standGeo, standMat);
+                    stand.position.y = 1.1;
 
-  deleteSelectedButton.addEventListener('click', deleteSelectedItem);
-  document.getElementById('undo-button').addEventListener('click', handleUndo);
-  document.getElementById('reset-button').addEventListener('click', resetDeskSetup);
-  document.getElementById('delete-all-button').addEventListener('click', clearAll);
-  document.getElementById('save-button').addEventListener('click', handleSave);
-  document.getElementById('download-button').addEventListener('click', handleDownload);
+                    const headGeo = new THREE.SphereGeometry(0.5, 16, 16);
+                    const headMat = new THREE.MeshStandardMaterial({ color: '#1a202c' });
+                    const head = new THREE.Mesh(headGeo, headMat);
+                    head.userData.colorable = true;
+                    head.scale.set(0.8, 1.5, 0.8); 
+                    head.position.set(0, 2.3, 0.2);
+                    head.rotation.x = Math.PI / 6;
+                    head.castShadow = true;
 
-  window.addItem = addItem;
-  window.clearAll = clearAll;
-  window.selectItem = selectItem;
-  window.deleteSelectedItem = deleteSelectedItem;
-  window.resetDeskSetup = resetDeskSetup;
-  window.changeTheme = changeTheme;
-  window.changeDeskSize = changeDeskSize;
-  window.handleSave = handleSave;
-  window.handleDownload = handleDownload;
-  window.getSetupState = getSetupState;
-  window.restoreSetupState = restoreSetupState;
-  window.loadSavedSetup = loadSavedSetup;
+                    itemGroup.add(base, stand, head);
+                }
+            }
+            else if (type === 'lamp') {
+                if (model === 'lightbar') {
+                    // 모니터 위에 띄우는 용도의 라이트바
+                    const barGeo = new THREE.CylinderGeometry(0.2, 0.2, 8);
+                    const barMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const bar = new THREE.Mesh(barGeo, barMat);
+                    bar.userData.colorable = true;
+                    bar.rotation.z = Math.PI / 2;
+                    bar.position.set(0, 8.5, -2);
+                    
+                    const lightAreaGeo = new THREE.PlaneGeometry(7.8, 0.3);
+                    const lightAreaMat = new THREE.MeshBasicMaterial({ color: '#ffffdd' });
+                    const lightArea = new THREE.Mesh(lightAreaGeo, lightAreaMat);
+                    lightArea.rotation.x = Math.PI / 2;
+                    lightArea.position.set(0, 8.4, -2);
+                    
+                    itemGroup.add(bar, lightArea);
+                } else {
+                    // 일반 스탠드 조명
+                    const baseGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.3);
+                    const baseMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const base = new THREE.Mesh(baseGeo, baseMat);
+                    base.userData.colorable = true;
+                    
+                    const stickGeo = new THREE.CylinderGeometry(0.1, 0.1, 5);
+                    const stickMat = new THREE.MeshStandardMaterial({ color: '#a0aec0', metalness: 0.5 });
+                    const stick = new THREE.Mesh(stickGeo, stickMat);
+                    stick.position.set(0, 2.5, 0);
+                    stick.rotation.z = -Math.PI / 8;
 
-  // --- Resize ---
-  window.addEventListener('resize', () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
-  });
+                    const headGeo = new THREE.ConeGeometry(1.5, 2, 16);
+                    const headMat = new THREE.MeshStandardMaterial({ color: '#2d3748' });
+                    const head = new THREE.Mesh(headGeo, headMat);
+                    head.userData.colorable = true;
+                    head.position.set(1, 4.5, 0);
+                    head.rotation.z = Math.PI / 4;
+                    
+                    const bulbGeo = new THREE.SphereGeometry(0.5);
+                    const bulbMat = new THREE.MeshBasicMaterial({ color: '#ffffaa' });
+                    const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+                    bulb.position.set(1.5, 4.2, 0);
 
-  // --- Animate ---
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    if (selectedHelper) selectedHelper.update();
-    renderer.render(scene, camera);
-  }
+                    base.castShadow = stick.castShadow = head.castShadow = true;
+                    itemGroup.add(base, stick, head, bulb);
+                }
+            }
 
-  renderItemList();
-  renderSelectedItemPanel();
-  if (!loadSavedSetup()) {
-    changeTheme('light', { skipHistory: true });
-    changeDeskSize('standard', { skipHistory: true });
-  }
-  animate();
-</script>
+            itemGroup.scale.set(scaleVal, scaleVal, scaleVal);
+            if (colorHex) {
+                itemGroup.traverse((child) => {
+                    if (child.isMesh && child.userData.colorable) {
+                        child.material = child.material.clone();
+                        child.userData.materialCloned = true;
+                        child.material.color.set(colorHex);
+                    }
+                });
+            }
+
+            scene.add(itemGroup);
+            addedItems.push(itemGroup);
+        }
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let draggedItem = null;
+        let selectedItem = null; 
+        let offset = new THREE.Vector3();
+        
+        const selectionBox = new THREE.BoxHelper(undefined, 0x3182ce);
+        selectionBox.visible = false;
+        scene.add(selectionBox);
+
+        const intersectionPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(deskTopY + 0.5));
+
+        canvasContainer.addEventListener('pointerdown', (event) => {
+            const rect = canvasContainer.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / canvasContainer.clientWidth) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / canvasContainer.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            let meshesToIntersect = [];
+            addedItems.forEach(group => {
+                meshesToIntersect.push(...group.children);
+            });
+
+            const intersects = raycaster.intersectObjects(meshesToIntersect);
+
+            if (intersects.length > 0) {
+                draggedItem = intersects[0].object.parent;
+                if(draggedItem.userData.isDraggable) {
+                    controls.enabled = false; 
+                    draggedItem.position.y = deskTopY + 1.0; 
+
+                    const intersectPoint = new THREE.Vector3();
+                    raycaster.ray.intersectPlane(intersectionPlane, intersectPoint);
+                    offset.copy(intersectPoint).sub(draggedItem.position);
+
+                    selectItem(draggedItem);
+                }
+            } else {
+                const floorIntersects = raycaster.intersectObject(floor);
+                const deskIntersects = raycaster.intersectObject(desk);
+                if (floorIntersects.length > 0 || deskIntersects.length > 0) {
+                    deselectItem();
+                }
+            }
+        });
+
+        function selectItem(item) {
+            selectedItem = item;
+            
+            selectionBox.setFromObject(selectedItem);
+            selectionBox.visible = true;
+
+            const rightSidebar = document.getElementById('right-sidebar');
+            rightSidebar.style.display = 'flex';
+            
+            const typeMap = { 'monitor':'모니터', 'keyboard':'키보드', 'mouse':'마우스', 'laptop':'노트북', 'pc':'본체', 'speaker':'스피커', 'mic':'마이크', 'lamp':'조명' };
+            document.getElementById('selected-title').innerText = typeMap[item.userData.type] || '오브젝트';
+            
+            const scaleSlider = document.getElementById('item-scale');
+            scaleSlider.value = item.scale.x;
+            document.getElementById('scale-value').innerText = item.scale.x.toFixed(1);
+
+            let colorHex = '#ffffff';
+            item.traverse((child) => {
+                if (child.isMesh && child.userData.colorable && colorHex === '#ffffff') {
+                    colorHex = '#' + child.material.color.getHexString();
+                }
+            });
+            document.getElementById('item-color').value = colorHex;
+        }
+
+        function deselectItem() {
+            selectedItem = null;
+            selectionBox.visible = false;
+            document.getElementById('right-sidebar').style.display = 'none';
+        }
+
+        canvasContainer.addEventListener('pointermove', (event) => {
+            if (draggedItem) {
+                const rect = canvasContainer.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / canvasContainer.clientWidth) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / canvasContainer.clientHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersectPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(intersectionPlane, intersectPoint);
+
+                const newX = intersectPoint.x - offset.x;
+                const newZ = intersectPoint.z - offset.z;
+                
+                draggedItem.position.x = newX;
+                draggedItem.position.z = newZ;
+            }
+        });
+
+        canvasContainer.addEventListener('pointerup', () => {
+            if (draggedItem) {
+                draggedItem.position.y = deskTopY + 0.5; 
+                
+                if(selectedItem === draggedItem) {
+                    selectionBox.update();
+                }
+
+                draggedItem = null;
+                controls.enabled = true; 
+            }
+        });
+
+        document.getElementById('close-right-sidebar').addEventListener('click', deselectItem);
+
+        document.getElementById('item-scale').addEventListener('input', (e) => {
+            if (selectedItem) {
+                const scaleVal = parseFloat(e.target.value);
+                selectedItem.scale.set(scaleVal, scaleVal, scaleVal);
+                document.getElementById('scale-value').innerText = scaleVal.toFixed(1);
+                selectionBox.update(); 
+            }
+        });
+
+        document.getElementById('item-color').addEventListener('input', (e) => {
+            if (selectedItem) {
+                const newColor = e.target.value;
+                selectedItem.traverse((child) => {
+                    if (child.isMesh && child.userData.colorable) {
+                        if (!child.userData.materialCloned) {
+                            child.material = child.material.clone();
+                            child.userData.materialCloned = true;
+                        }
+                        child.material.color.set(newColor);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('delete-item-btn').addEventListener('click', () => {
+            if (selectedItem) {
+                scene.remove(selectedItem);
+                const index = addedItems.indexOf(selectedItem);
+                if (index > -1) addedItems.splice(index, 1);
+                deselectItem();
+            }
+        });
+
+        const itemButtons = document.querySelectorAll('.item-btn');
+        itemButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // 클릭한 카테고리 외에 다른 아코디언은 닫기 (옵션)
+                itemButtons.forEach(otherBtn => {
+                    if (otherBtn !== btn) {
+                        otherBtn.classList.remove('open');
+                        const otherList = document.getElementById('list-' + otherBtn.getAttribute('data-category'));
+                        if(otherList) otherList.classList.remove('open');
+                    }
+                });
+
+                // 현재 카테고리 열기/닫기 토글
+                btn.classList.toggle('open');
+                const category = btn.getAttribute('data-category');
+                const list = document.getElementById('list-' + category);
+                if (list) {
+                    list.classList.toggle('open');
+                }
+            });
+        });
+
+        const modelButtons = document.querySelectorAll('.model-btn');
+        modelButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = e.currentTarget.getAttribute('data-type');
+                const model = e.currentTarget.getAttribute('data-model');
+                createItem(type, model);
+            });
+        });
+
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            addedItems.forEach(item => {
+                scene.remove(item);
+            });
+            addedItems.length = 0; 
+            deselectItem(); 
+        });
+
+        const btnDay = document.getElementById('btn-day');
+        const btnNight = document.getElementById('btn-night');
+
+        btnDay.addEventListener('click', () => {
+            btnDay.classList.add('active');
+            btnNight.classList.remove('active');
+            
+            scene.background.set('#f5f7fa');
+            ambientLight.intensity = 0.7;
+            directionalLight.intensity = 0.8;
+            pointLight.intensity = 0; 
+            document.body.style.backgroundColor = '#f5f7fa'; 
+        });
+
+        btnNight.addEventListener('click', () => {
+            btnNight.classList.add('active');
+            btnDay.classList.remove('active');
+            
+            scene.background.set('#1a202c');
+            ambientLight.intensity = 0.1;
+            directionalLight.intensity = 0.1;
+            pointLight.intensity = 0; 
+            document.body.style.backgroundColor = '#1a202c'; 
+        });
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+            const layoutData = addedItems.map(item => {
+                let cHex = null;
+                item.traverse((child) => {
+                    if (child.isMesh && child.userData.colorable && !cHex) {
+                        cHex = '#' + child.material.color.getHexString();
+                    }
+                });
+
+                return {
+                    type: item.userData.type,
+                    model: item.userData.model, // 저장 시 모델 정보 포함
+                    x: item.position.x,
+                    z: item.position.z,
+                    scale: item.scale.x,
+                    color: cHex
+                };
+            });
+            localStorage.setItem('deskLayout', JSON.stringify(layoutData));
+            
+            const saveBtn = document.getElementById('btn-save');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = '✅ 저장됨!';
+            saveBtn.style.color = '#38a169';
+            setTimeout(() => {
+                saveBtn.innerText = originalText;
+                saveBtn.style.color = '';
+            }, 1500);
+        });
+
+        document.getElementById('btn-download').addEventListener('click', () => {
+            renderer.render(scene, camera); 
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'my-desk-setup.png';
+            link.click();
+        });
+
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('deskLayout');
+            if (savedData) {
+                try {
+                    const layout = JSON.parse(savedData);
+                    layout.forEach(item => {
+                        // 이전 버전 호환성을 위해 모델 정보가 없으면 'standard'로 처리
+                        const modelType = item.model || 'standard';
+                        createItem(item.type, modelType, item.x, item.z, item.scale, item.color);
+                    });
+                } catch(e) {
+                    console.error("저장된 레이아웃을 불러오는 중 오류 발생:", e);
+                }
+            } else {
+                createItem('monitor', 'standard', 0, -2);
+                createItem('keyboard', 'standard', 0, 4);
+            }
+        });
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.dampingFactor = 0.05;
+        
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+        controls.minDistance = 20;
+        controls.maxDistance = 150;
+        controls.target.set(0, deskTopY, 0);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); 
+            
+            if (selectedItem && draggedItem === selectedItem) {
+                selectionBox.update();
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        });
+    </script>
+
 </body>
 </html>
