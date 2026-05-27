@@ -544,17 +544,16 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   import { DragControls } from 'three/addons/controls/DragControls.js';
+  import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
   const ITEM_DATA = {
-    monitor: { name: 'Curved Monitor', brand: 'ViewMax', model: 'VM-27Q', category: 'Monitor', group: 'device', icon: '🖥' },
-    laptop: { name: 'Slim Laptop', brand: 'NoteLab', model: 'NL Air 14', category: 'Computer', group: 'device', icon: '💻' },
-    keyboard: { name: 'Mechanical Keyboard', brand: 'KeyForge', model: 'KF TKL', category: 'Keyboard', group: 'device', icon: '⌨' },
-    mouse: { name: 'Wireless Mouse', brand: 'PointX', model: 'PX Mini', category: 'Mouse', group: 'device', icon: '🖱' },
-    speaker: { name: 'Desk Speaker', brand: 'SoundCube', model: 'SC-2', category: 'Audio', group: 'device', icon: '🔊' },
-    lamp: { name: 'Desk Lamp', brand: 'LightMood', model: 'LM Warm', category: 'Light', group: 'decor', icon: '💡' },
-    coffee: { name: 'Coffee Mug', brand: 'Daily Cup', model: 'Classic', category: 'Decor', group: 'decor', icon: '☕' },
-    tablet: { name: 'Tablet', brand: 'TabOne', model: 'T11', category: 'Device', group: 'device', icon: '📟' },
-    plant: { name: 'Mini Plant', brand: 'GreenDesk', model: 'Cactus', category: 'Decor', group: 'decor', icon: '🌵' },
+    keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl' },
+    mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl' },
+    laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl' },
+    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.gltf' },
+    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.gltf' },
+    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.gltf' },
   };
 
   const DESK_SIZE_DATA = {
@@ -704,144 +703,54 @@
     });
   }
 
+  const stlLoader = new STLLoader();
+  const gltfLoader = new GLTFLoader();
+
   function createItemMesh(type) {
     const group = new THREE.Group();
-    let mat;
+    const itemInfo = ITEM_DATA[type];
 
-    const colors = {
-      monitor: 0x3498db, laptop: 0x9b59b6, keyboard: 0x2ecc71, mouse: 0xf1c40f,
-      speaker: 0x95a5a6, lamp: 0xe67e22, coffee: 0xa0643c, tablet: 0x34495e,
-      plant: 0x27ae60,
-    };
-    const color = colors[type] || 0xe94560;
-    mat = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.2 });
+    if(!itemInfo || !itemInfo.url) return group;
 
-    switch (type) {
-      case 'monitor': {
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.7, 0.06), mat);
-        screen.position.y = 0.35;
-        screen.castShadow = true;
-        group.add(screen);
-        const stand = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.05, 0.08, 0.2, 8),
-          new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 })
-        );
-        stand.position.y = 0.1;
-        group.add(stand);
-        const base = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.03, 0.15),
-          new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 })
-        );
-        base.position.y = 0.015;
-        group.add(base);
-        break;
-      }
-      case 'laptop': {
-        const base = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.6), mat);
-        base.position.y = 0.02;
-        base.castShadow = true;
-        group.add(base);
-        const screenMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.3, metalness: 0.3 });
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.55, 0.03), screenMat);
-        screen.position.set(0, 0.3, -0.25);
-        screen.rotation.x = -0.3;
-        group.add(screen);
-        break;
-      }
-      case 'keyboard': {
-        const kb = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.25), mat);
-        kb.position.y = 0.02;
-        kb.castShadow = true;
-        group.add(kb);
-        const keys = new THREE.Mesh(
-          new THREE.BoxGeometry(0.7, 0.03, 0.18),
-          new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.6 })
-        );
-        keys.position.y = 0.045;
-        group.add(keys);
-        break;
-      }
-      case 'mouse': {
-        const mouse = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), mat);
-        mouse.scale.set(1, 0.5, 1.4);
-        mouse.position.y = 0.06;
-        mouse.castShadow = true;
-        group.add(mouse);
-        break;
-      }
-      case 'speaker': {
-        const speaker = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.3, 16), mat);
-        speaker.position.y = 0.15;
-        speaker.castShadow = true;
-        group.add(speaker);
-        const grille = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.08, 0.1, 0.02, 16),
-          new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.8 })
-        );
-        grille.position.y = 0.15;
-        grille.position.z = 0.12;
-        group.add(grille);
-        break;
-      }
-      case 'lamp': {
-        const armMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4, metalness: 0.7 });
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.03, 12), armMat);
-        base.position.y = 0.015;
-        group.add(base);
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.35, 8), armMat);
-        pole.position.y = 0.19;
-        group.add(pole);
-        const headMat = new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.3, emissive: 0xffdd44, emissiveIntensity: 0.1 });
-        const head = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.08, 12), headMat);
-        head.position.set(0, 0.38, -0.06);
-        head.rotation.x = 0.3;
-        group.add(head);
-        break;
-      }
-      case 'coffee': {
-        const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.12, 12), mat);
-        mug.position.y = 0.06;
-        mug.castShadow = true;
-        group.add(mug);
-        const handle = new THREE.Mesh(
-          new THREE.TorusGeometry(0.04, 0.015, 8, 12, Math.PI),
-          new THREE.MeshStandardMaterial({ color: 0xa0643c, roughness: 0.6 })
-        );
-        handle.position.set(0.09, 0.08, 0);
-        handle.rotation.z = Math.PI / 2;
-        group.add(handle);
-        break;
-      }
-      case 'tablet': {
-        const tab = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.35), mat);
-        tab.position.y = 0.01;
-        tab.castShadow = true;
-        group.add(tab);
-        const screenMat = new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.2 });
-        const screen = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.01, 0.29), screenMat);
-        screen.position.y = 0.025;
-        group.add(screen);
-        break;
-      }
-      case 'plant': {
-        const potMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.7 });
-        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.12, 8), potMat);
-        pot.position.y = 0.06;
-        group.add(pot);
-        const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), mat);
-        leaves.position.y = 0.16;
-        leaves.scale.set(1, 0.8, 1);
-        group.add(leaves);
-        const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), mat);
-        leaf2.position.set(0.06, 0.2, 0.06);
-        group.add(leaf2);
-        break;
-      }
-    }
+    const url = itemInfo.url();
+    const extension = url.split('.').pop().toLowerCase();
 
-    group.children.forEach(child => {
-      if (child.isMesh) child.receiveShadow = true;
+    const defaultMaterial = new THREE.MeshStandardMaterial({
+      color : 0x888888,
+      roughness : 0.5,
+      metalness : 0.2
     });
+
+    if(extension === 'stl') {
+      stlLoader.load(url, (geometry) => {
+        geometry.center();
+        const mesh = new THREE.Mesh(geometry, defaultMaterial);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        mesh.scale.set(0.01, 0.01, 0.01);
+        mesh.position.y = 0.05;
+        group.add(mesh);
+
+      });
+    } else if (extension === 'gltf' || extension === 'glb') {
+      gltfLoader.load(url, (gltf) => {
+        const model = gltf.scene;
+
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+          }
+        });
+
+        model.scale.set(0.01, 0.01, 0.01);
+        group.add(model);
+
+      });
+
+    }
 
     return group;
   }
