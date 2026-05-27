@@ -551,11 +551,70 @@
     keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl' },
     mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl' },
     laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl' },
-    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.gltf' },
-    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.gltf' },
-    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.gltf' },
+    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb' },
+    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb' },
+
+    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb' }
   };
 
+  const stlLoader = new STLLoader();
+  const gltfLoader = new GLTFLoader();
+
+  function createItemMesh(type) {
+    const group = new THREE.Group();
+    const itemInfo = ITEM_DATA[type];
+    
+    // 💡 에러 방지: url이 비어있거나 문자열이 아니면 중단합니다.
+    if (!itemInfo || typeof itemInfo.url !== 'string') {
+      console.error(`[에러] ${type}의 url이 올바른 문자열이 아닙니다:`, itemInfo);
+      return group;
+    }
+
+    const url = itemInfo.url;
+    const extension = url.split('.').pop().toLowerCase();
+    
+    const defaultMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x888888, 
+      roughness: 0.5, 
+      metalness: 0.2 
+    });
+
+    if (extension === 'stl') {
+      stlLoader.load(
+        url, 
+        (geometry) => {
+          geometry.center();
+          const mesh = new THREE.Mesh(geometry, defaultMaterial);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          mesh.scale.set(0.01, 0.01, 0.01); // 크기 조절
+          mesh.position.y = 0.05; 
+          group.add(mesh);
+        },
+        undefined, // 로딩 진행률 (생략)
+        (error) => console.error('STL 로드 에러 (경로 확인 필요):', error)
+      );
+    } else if (extension === 'gltf' || extension === 'glb') {
+      gltfLoader.load(
+        url, 
+        (gltf) => {
+          const model = gltf.scene;
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+          model.scale.set(0.01, 0.01, 0.01); // 크기 조절
+          group.add(model);
+        },
+        undefined, // 로딩 진행률 (생략)
+        (error) => console.error('GLTF/GLB 로드 에러 (경로 확인 필요):', error)
+      );
+    }
+
+    return group;
+  }
   const DESK_SIZE_DATA = {
     compact: { label: 'Compact', badge: 'Compact · 1200 x 600', width: 5.1, depth: 2.55 },
     standard: { label: 'Standard', badge: 'Standard · 1400 x 700', width: 6, depth: 3 },
@@ -703,57 +762,6 @@
     });
   }
 
-  const stlLoader = new STLLoader();
-  const gltfLoader = new GLTFLoader();
-
-  function createItemMesh(type) {
-    const group = new THREE.Group();
-    const itemInfo = ITEM_DATA[type];
-
-    if(!itemInfo || !itemInfo.url) return group;
-
-    const url = itemInfo.url();
-    const extension = url.split('.').pop().toLowerCase();
-
-    const defaultMaterial = new THREE.MeshStandardMaterial({
-      color : 0x888888,
-      roughness : 0.5,
-      metalness : 0.2
-    });
-
-    if(extension === 'stl') {
-      stlLoader.load(url, (geometry) => {
-        geometry.center();
-        const mesh = new THREE.Mesh(geometry, defaultMaterial);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
-        mesh.scale.set(0.01, 0.01, 0.01);
-        mesh.position.y = 0.05;
-        group.add(mesh);
-
-      });
-    } else if (extension === 'gltf' || extension === 'glb') {
-      gltfLoader.load(url, (gltf) => {
-        const model = gltf.scene;
-
-        model.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-
-          }
-        });
-
-        model.scale.set(0.01, 0.01, 0.01);
-        group.add(model);
-
-      });
-
-    }
-
-    return group;
-  }
 
   function getDeskBounds() {
     const size = DESK_SIZE_DATA[currentDeskSize];
