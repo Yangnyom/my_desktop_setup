@@ -491,6 +491,15 @@
       <button class="action-button danger" id="delete-selected-button" type="button" disabled>삭제</button>
     </section>
 
+    <section class="option-section transform-panel">
+      <h2>Transform Mode</h2>
+      <div class="option-row">
+        <button class="option-button active" type="button" data-transform="translate">Move</button>
+        <button class="option-button" type="button" data-transform="rotate">Rotate</button>
+      </div>
+      <p class="panel-note">단축키: W=이동, E=회전</p>
+    </section>
+
     <section class="option-section theme-panel">
       <h2>Desk Surface / Theme</h2>
       <div class="option-row">
@@ -543,28 +552,34 @@
 <script type="module">
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-  import { DragControls } from 'three/addons/controls/DragControls.js';
+  import { TransformControls } from 'three/addons/controls/TransformControls.js';
   import { STLLoader } from 'three/addons/loaders/STLLoader.js';
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
   const ITEM_DATA = {
-    keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl' },
-    mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl' },
-    laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl' },
-    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb' },
-    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb' },
-
-    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb' }
+    keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl', standardSize: 0.8 },
+    mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl', standardSize: 0.35 },
+    laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl', standardSize: 0.65 },
+    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb', standardSize: 0.25 },
+    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb', standardSize: 0.7 },
+    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb', standardSize: 0.5 }
   };
 
   const stlLoader = new STLLoader();
   const gltfLoader = new GLTFLoader();
 
+  function computeStandardScale(object, targetSize) {
+    const box = new THREE.Box3().setFromObject(object);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    return maxDim > 0 ? targetSize / maxDim : 1;
+  }
+
   function createItemMesh(type) {
     const group = new THREE.Group();
     const itemInfo = ITEM_DATA[type];
     
-    // 💡 에러 방지: url이 비어있거나 문자열이 아니면 중단합니다.
     if (!itemInfo || typeof itemInfo.url !== 'string') {
       console.error(`[에러] ${type}의 url이 올바른 문자열이 아닙니다:`, itemInfo);
       return group;
@@ -572,6 +587,7 @@
 
     const url = itemInfo.url;
     const extension = url.split('.').pop().toLowerCase();
+    const targetSize = itemInfo.standardSize || 0.5;
     
     const defaultMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x888888, 
@@ -587,11 +603,13 @@
           const mesh = new THREE.Mesh(geometry, defaultMaterial);
           mesh.castShadow = true;
           mesh.receiveShadow = true;
-          mesh.scale.set(0.01, 0.01, 0.01); // 크기 조절
-          mesh.position.y = 0.05; 
+
+          const scale = computeStandardScale(mesh, targetSize);
+          mesh.scale.set(scale, scale, scale);
+          mesh.position.y = 0;
           group.add(mesh);
         },
-        undefined, // 로딩 진행률 (생략)
+        undefined,
         (error) => console.error('STL 로드 에러 (경로 확인 필요):', error)
       );
     } else if (extension === 'gltf' || extension === 'glb') {
@@ -605,10 +623,12 @@
               child.receiveShadow = true;
             }
           });
-          model.scale.set(0.01, 0.01, 0.01); // 크기 조절
+
+          const scale = computeStandardScale(model, targetSize);
+          model.scale.set(scale, scale, scale);
           group.add(model);
         },
-        undefined, // 로딩 진행률 (생략)
+        undefined,
         (error) => console.error('GLTF/GLB 로드 에러 (경로 확인 필요):', error)
       );
     }
@@ -731,9 +751,9 @@
   const STORAGE_KEY = 'myDeskSetupState';
   const HISTORY_LIMIT = 30;
   const historyStack = [];
-  let dragControls;
   let selectedItem = null;
-  let selectedHelper = null;
+  let transformControls;
+  let transformMode = 'translate';
   let currentTheme = 'light';
   let currentDeskSize = 'standard';
   let isRestoringState = false;
@@ -833,7 +853,6 @@
       });
 
       selectItem(null);
-      initDragControls();
       return true;
     } finally {
       isRestoringState = false;
@@ -884,55 +903,36 @@
     scene.add(group);
     items.push(group);
 
-    initDragControls();
     if (options.select !== false) selectItem(group);
     return group;
   }
 
-  function disposeDragControls() {
-    if (dragControls) {
-      dragControls.dispose();
-      dragControls = null;
-    }
-  }
-
-  function initDragControls() {
-    disposeDragControls();
-    if (items.length === 0) return;
-
-    dragControls = new DragControls(items, camera, renderer.domElement);
-    dragControls.addEventListener('dragstart', e => {
-      controls.enabled = false;
-      selectItem(e.object);
-      e.object.position.y = 1.0;
+  function setupTransformControls() {
+    transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.addEventListener('dragging-changed', event => {
+      controls.enabled = !event.value;
     });
-    dragControls.addEventListener('drag', e => {
-      const bounds = getDeskBounds();
-      e.object.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, e.object.position.x));
-      e.object.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, e.object.position.z));
+    transformControls.addEventListener('objectChange', () => {
+      if (transformControls.mode === 'translate' && transformControls.object) {
+        const bounds = getDeskBounds();
+        const obj = transformControls.object;
+        obj.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, obj.position.x));
+        obj.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, obj.position.z));
+      }
+      if (selectedItem) renderSelectedItemPanel();
     });
-    dragControls.addEventListener('dragend', e => {
-      controls.enabled = true;
-      e.object.position.y = 0.68;
-    });
-  }
-
-  function clearSelectedHelper() {
-    if (selectedHelper) {
-      scene.remove(selectedHelper);
-      if (selectedHelper.geometry) selectedHelper.geometry.dispose();
-      if (selectedHelper.material) selectedHelper.material.dispose();
-      selectedHelper = null;
-    }
+    scene.add(transformControls);
   }
 
   function selectItem(item) {
     selectedItem = item || null;
-    clearSelectedHelper();
 
     if (selectedItem) {
-      selectedHelper = new THREE.BoxHelper(selectedItem, 0xe94560);
-      scene.add(selectedHelper);
+      transformControls.attach(selectedItem);
+      transformControls.setMode(transformMode);
+      transformControls.setSize(0.8);
+    } else {
+      transformControls.detach();
     }
 
     renderSelectedItemPanel();
@@ -977,7 +977,6 @@
 
     scene.remove(target);
     selectItem(null);
-    initDragControls();
   }
 
   function clearAll(options = {}) {
@@ -986,7 +985,6 @@
     items.forEach(item => scene.remove(item));
     items.length = 0;
     selectItem(null);
-    disposeDragControls();
   }
 
   function resetDeskSetup(options = {}) {
@@ -1164,6 +1162,26 @@
     });
   });
 
+  function setTransformMode(mode) {
+    transformMode = mode;
+    if (selectedItem) {
+      transformControls.setMode(mode);
+    }
+    document.querySelectorAll('[data-transform]').forEach(button => {
+      button.classList.toggle('active', button.dataset.transform === mode);
+    });
+  }
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'w' || event.key === 'W') setTransformMode('translate');
+    if (event.key === 'e' || event.key === 'E') setTransformMode('rotate');
+    if (event.key === 'Delete' || event.key === 'Backspace') deleteSelectedItem();
+  });
+
+  document.querySelectorAll('[data-transform]').forEach(button => {
+    button.addEventListener('click', () => setTransformMode(button.dataset.transform));
+  });
+
   deleteSelectedButton.addEventListener('click', deleteSelectedItem);
   document.getElementById('undo-button').addEventListener('click', handleUndo);
   document.getElementById('reset-button').addEventListener('click', resetDeskSetup);
@@ -1183,6 +1201,7 @@
   window.getSetupState = getSetupState;
   window.restoreSetupState = restoreSetupState;
   window.loadSavedSetup = loadSavedSetup;
+  window.setTransformMode = setTransformMode;
 
   // --- Resize ---
   window.addEventListener('resize', () => {
@@ -1197,10 +1216,10 @@
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
-    if (selectedHelper) selectedHelper.update();
     renderer.render(scene, camera);
   }
 
+  setupTransformControls();
   renderItemList();
   renderSelectedItemPanel();
   if (!loadSavedSetup()) {
