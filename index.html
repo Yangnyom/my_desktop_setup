@@ -658,15 +658,8 @@
   controls.minDistance = 3;
   controls.maxDistance = 20;
   controls.update();
-
-  const transformControl = new TransformControls(camera, renderer.domElement);
-  scene.add(transformControl);
   
-  transformControl.addEventListener('dragging-changed', function (event) {
-    orbit.enabled = !event.value;
-  });
 
-  transformControl.attach(myObject);
   // --- Lighting ---
   const ambient = new THREE.AmbientLight(0x404060, 0.6);
   scene.add(ambient);
