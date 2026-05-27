@@ -472,7 +472,7 @@
     </div>
 
     <div id="canvas-container"></div>
-    <div class="info">드래그: 아이템 이동 | 우클릭 드래그: 시점 회전 | 휠: 확대/축소 | 클릭: 아이템 선택</div>
+    <div class="info">드래그: 아이템 이동 | 우클릭 드래그(or Ctrl + 우클릭 드래그): 시점 회전 | 휠: 확대/축소 | 클릭: 아이템 선택</div>
   </main>
 
   <aside class="option-panel">
@@ -496,8 +496,9 @@
       <div class="option-row">
         <button class="option-button active" type="button" data-transform="translate">Move</button>
         <button class="option-button" type="button" data-transform="rotate">Rotate</button>
+        <button class="option-button" type="button" data-transform="scale">Scale</button>
       </div>
-      <p class="panel-note">단축키: W=이동, E=회전</p>
+      <p class="panel-note">단축키: W=이동, E=회전, R=크기</p>
     </section>
 
     <section class="option-section theme-panel">
@@ -526,7 +527,7 @@
         <button class="action-button" id="reset-button" type="button">Reset</button>
         <button class="action-button danger" id="delete-all-button" type="button">Delete All</button>
       </div>
-      <p class="panel-note">Undo는 Alpha Test 이후 히스토리 기능과 연결합니다.</p>
+      <p class="panel-note">Undo / Redo: Ctrl+Z / Ctrl+Y</p>
     </section>
 
     <section class="option-section save-panel">
@@ -751,6 +752,7 @@
   const STORAGE_KEY = 'myDeskSetupState';
   const HISTORY_LIMIT = 30;
   const historyStack = [];
+  const redoStack = [];
   let selectedItem = null;
   let transformControls;
   let transformMode = 'translate';
@@ -812,6 +814,7 @@
 
     const snapshot = JSON.parse(JSON.stringify(getSetupState()));
     historyStack.push(snapshot);
+    redoStack.length = 0;
 
     if (historyStack.length > HISTORY_LIMIT) {
       historyStack.shift();
@@ -911,14 +914,26 @@
     transformControls = new TransformControls(camera, renderer.domElement);
     transformControls.addEventListener('dragging-changed', event => {
       controls.enabled = !event.value;
+      if (event.value && selectedItem) pushHistory();
     });
     transformControls.addEventListener('objectChange', () => {
-      if (transformControls.mode === 'translate' && transformControls.object) {
+      const obj = transformControls.object;
+      if (!obj) return;
+
+      if (transformControls.mode === 'translate') {
         const bounds = getDeskBounds();
-        const obj = transformControls.object;
         obj.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, obj.position.x));
         obj.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, obj.position.z));
       }
+
+      if (transformControls.mode === 'scale') {
+        const minScale = 0.15;
+        const maxScale = 3.0;
+        obj.scale.x = Math.max(minScale, Math.min(maxScale, obj.scale.x));
+        obj.scale.y = Math.max(minScale, Math.min(maxScale, obj.scale.y));
+        obj.scale.z = Math.max(minScale, Math.min(maxScale, obj.scale.z));
+      }
+
       if (selectedItem) renderSelectedItemPanel();
     });
     scene.add(transformControls);
@@ -1070,8 +1085,20 @@
       return;
     }
 
+    redoStack.push(JSON.parse(JSON.stringify(getSetupState())));
     const previousState = historyStack.pop();
     restoreSetupState(previousState);
+  }
+
+  function handleRedo() {
+    if (redoStack.length === 0) {
+      console.log('redo history is empty');
+      return;
+    }
+
+    historyStack.push(JSON.parse(JSON.stringify(getSetupState())));
+    const nextState = redoStack.pop();
+    restoreSetupState(nextState);
   }
 
   function handleSave() {
@@ -1173,8 +1200,19 @@
   }
 
   document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'z' || event.key === 'Z')) {
+      event.preventDefault();
+      handleUndo();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || event.key === 'Y')) {
+      event.preventDefault();
+      handleRedo();
+      return;
+    }
     if (event.key === 'w' || event.key === 'W') setTransformMode('translate');
     if (event.key === 'e' || event.key === 'E') setTransformMode('rotate');
+    if (event.key === 'r' || event.key === 'R') setTransformMode('scale');
     if (event.key === 'Delete' || event.key === 'Backspace') deleteSelectedItem();
   });
 
@@ -1198,6 +1236,7 @@
   window.changeDeskSize = changeDeskSize;
   window.handleSave = handleSave;
   window.handleDownload = handleDownload;
+  window.handleRedo = handleRedo;
   window.getSetupState = getSetupState;
   window.restoreSetupState = restoreSetupState;
   window.loadSavedSetup = loadSavedSetup;
