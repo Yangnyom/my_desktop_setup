@@ -22,6 +22,9 @@
     overflow: hidden;
     background: #0d1020;
     color: var(--panel-text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
   }
 
   body.theme-light {
@@ -42,7 +45,7 @@
 
   .app-shell {
     width: 100vw;
-    height: 100vh;
+    flex: 1;
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr) 320px;
     background:
@@ -65,7 +68,7 @@
   .side-panel,
   .option-panel {
     min-width: 0;
-    height: 100vh;
+    height: calc(100vh - 56px);
     overflow-y: auto;
     background: var(--panel-bg);
     border-color: var(--line);
@@ -194,7 +197,7 @@
   .desk-stage {
     position: relative;
     min-width: 0;
-    height: 100vh;
+    height: 100%;
   }
 
   #canvas-container {
@@ -401,6 +404,299 @@
     line-height: 1.4;
   }
 
+  /* ===== 병합: Top Bar ===== */
+  #topbar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .topbar-logo {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--panel-text);
+  }
+
+  .topbar-logo span {
+    color: var(--accent);
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .topbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: var(--panel-text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--accent);
+  }
+
+  /* ===== 병합: Accordion Sidebar ===== */
+  .category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .accordion-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: var(--panel-text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.18s ease;
+    text-align: left;
+  }
+
+  .accordion-btn:hover {
+    border-color: rgba(233, 69, 96, 0.5);
+  }
+
+  .accordion-btn .arrow {
+    font-size: 10px;
+    color: var(--panel-muted);
+    transition: transform 0.25s ease;
+  }
+
+  .accordion-btn.open .arrow {
+    transform: rotate(180deg);
+  }
+
+  .accordion-btn .acc-icon {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+
+  .accordion-btn .acc-label {
+    flex: 1;
+  }
+
+  .sub-model-list {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 2px 0 6px 10px;
+  }
+
+  .sub-model-list.open {
+    display: flex;
+  }
+
+  .sub-model-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--panel-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.18s ease;
+    text-align: left;
+  }
+
+  .sub-model-btn:hover {
+    background: var(--accent-soft);
+    color: var(--panel-text);
+    border-color: rgba(233, 69, 96, 0.3);
+  }
+
+  .sub-model-btn::before {
+    content: '↳';
+    margin-right: 4px;
+    color: var(--panel-muted);
+    font-size: 11px;
+  }
+
+  /* ===== 병합: Canvas Floating Action Panel ===== */
+  #canvas-action-panel {
+    position: absolute;
+    bottom: 60px;
+    right: 20px;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  #canvas-action-panel .action-btn {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    color: var(--panel-text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: 0.18s ease;
+  }
+
+  #canvas-action-panel .action-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  #canvas-action-panel .action-btn.danger {
+    border-color: rgba(233, 69, 96, 0.36);
+    background: rgba(233, 69, 96, 0.15);
+    color: var(--accent);
+  }
+
+  #canvas-action-panel .action-btn.danger:hover {
+    background: rgba(233, 69, 96, 0.34);
+  }
+
+  /* ===== 병합: Floating Right Panel (Selection Panel) ===== */
+  #floating-right-panel {
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    z-index: 30;
+    width: 260px;
+    background: var(--panel-bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    backdrop-filter: blur(16px);
+    padding: 16px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: auto;
+  }
+
+  .floating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .floating-header span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--panel-text);
+  }
+
+  .floating-header button {
+    background: none;
+    border: none;
+    color: var(--panel-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  .floating-header button:hover {
+    color: var(--panel-text);
+  }
+
+  .floating-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .floating-body label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--panel-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .floating-body label span {
+    color: var(--panel-text);
+    font-weight: 700;
+  }
+
+  .floating-body input[type="color"] {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .floating-body input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--line);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .floating-body input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--panel-bg);
+    cursor: pointer;
+  }
+
+  .floating-body .floating-delete-btn {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(233, 69, 96, 0.36);
+    border-radius: 8px;
+    background: rgba(233, 69, 96, 0.15);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.18s ease;
+    margin-top: 4px;
+  }
+
+  .floating-body .floating-delete-btn:hover {
+    background: rgba(233, 69, 96, 0.34);
+  }
+
   @media (max-width: 1100px) {
     .app-shell {
       grid-template-columns: 230px minmax(0, 1fr) 280px;
@@ -432,7 +728,7 @@
 
     .desk-stage {
       height: 68vh;
-      min-height: 460px;
+      min-height: 400px;
     }
 
     .info {
@@ -444,21 +740,60 @@
 </head>
 <body class="theme-light desk-size-standard">
 
+<div id="topbar">
+  <div class="topbar-logo"><span>3D</span> Desk Setup</div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" id="topbar-save">💾 저장</button>
+    <button class="topbar-btn" id="topbar-download">📷 다운로드</button>
+  </div>
+</div>
+
 <div class="app-shell">
   <aside class="side-panel">
     <div class="panel-title">
       <p class="eyebrow">Item Category</p>
       <h1>Desk Items</h1>
-      <p>카드를 클릭하면 중앙 데스크 위에 아이템이 추가됩니다.</p>
+      <p>카테고리를 열고 모델을 클릭하면 데스크에 추가됩니다.</p>
     </div>
 
-    <div class="category-tabs" aria-label="Item categories">
-      <button class="active" type="button" data-category="all">All</button>
-      <button type="button" data-category="device">Device</button>
-      <button type="button" data-category="decor">Decor</button>
+    <div class="category-list" id="category-list">
+      <div class="category-group">
+        <button class="accordion-btn" data-category="monitor"><span class="acc-icon">🖥</span><span class="acc-label">모니터</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-monitor">
+          <button class="sub-model-btn" data-type="monitor">스탠다드 모니터</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="keyboard"><span class="acc-icon">⌨</span><span class="acc-label">키보드</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-keyboard">
+          <button class="sub-model-btn" data-type="keyboard">커스텀 키보드</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="mouse"><span class="acc-icon">🖱</span><span class="acc-label">마우스</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-mouse">
+          <button class="sub-model-btn" data-type="mouse">일반 마우스</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="laptop"><span class="acc-icon">💻</span><span class="acc-label">노트북</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-laptop">
+          <button class="sub-model-btn" data-type="laptop">노트북</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="pc"><span class="acc-icon">🖧</span><span class="acc-label">본체</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-pc">
+          <button class="sub-model-btn" data-type="pc">데스크탑 PC</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="mic"><span class="acc-icon">🎙</span><span class="acc-label">마이크</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-mic">
+          <button class="sub-model-btn" data-type="mic">스튜디오 마이크</button>
+        </div>
+      </div>
     </div>
-
-    <div class="item-list" id="item-list"></div>
   </aside>
 
   <main class="desk-stage">
@@ -472,6 +807,25 @@
     </div>
 
     <div id="canvas-container"></div>
+
+    <div id="canvas-action-panel">
+      <button class="action-btn danger" id="canvas-clear-btn">🗑️ 모두 지우기</button>
+    </div>
+
+    <div id="floating-right-panel">
+      <div class="floating-header">
+        <span id="floating-title">선택된 오브젝트</span>
+        <button id="close-floating-panel">✕</button>
+      </div>
+      <div class="floating-body">
+        <label>🎨 색상 <span id="color-hex">#ffffff</span></label>
+        <input type="color" id="item-color" value="#ffffff">
+        <label>📏 크기 (<span id="scale-value">1.0</span>x)</label>
+        <input type="range" id="item-scale" min="0.5" max="2.0" step="0.1" value="1">
+        <button class="floating-delete-btn" id="floating-delete-btn">🗑️ 이 오브젝트 삭제</button>
+      </div>
+    </div>
+
     <div class="info">드래그: 아이템 이동 | 우클릭 드래그(or Ctrl + 우클릭 드래그): 시점 회전 | 휠: 확대/축소 | 클릭: 아이템 선택</div>
   </main>
 
@@ -496,9 +850,8 @@
       <div class="option-row">
         <button class="option-button active" type="button" data-transform="translate">Move</button>
         <button class="option-button" type="button" data-transform="rotate">Rotate</button>
-        <button class="option-button" type="button" data-transform="scale">Scale</button>
       </div>
-      <p class="panel-note">단축키: W=이동, E=회전, R=크기</p>
+      <p class="panel-note">단축키: W=이동, E=회전</p>
     </section>
 
     <section class="option-section theme-panel">
@@ -765,6 +1118,7 @@
   const pointer = new THREE.Vector2();
 
   function renderItemList(category = 'all') {
+    if (!itemList) return;
     const itemEntries = Object.entries(ITEM_DATA).filter(([, item]) => {
       return category === 'all' || item.group === category;
     });
@@ -912,6 +1266,7 @@
 
   function setupTransformControls() {
     transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.rotationSnap = Math.PI / 18;
     transformControls.addEventListener('dragging-changed', event => {
       controls.enabled = !event.value;
       if (event.value && selectedItem) pushHistory();
@@ -924,14 +1279,6 @@
         const bounds = getDeskBounds();
         obj.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, obj.position.x));
         obj.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, obj.position.z));
-      }
-
-      if (transformControls.mode === 'scale') {
-        const minScale = 0.15;
-        const maxScale = 3.0;
-        obj.scale.x = Math.max(minScale, Math.min(maxScale, obj.scale.x));
-        obj.scale.y = Math.max(minScale, Math.min(maxScale, obj.scale.y));
-        obj.scale.z = Math.max(minScale, Math.min(maxScale, obj.scale.z));
       }
 
       if (selectedItem) renderSelectedItemPanel();
@@ -1212,7 +1559,6 @@
     }
     if (event.key === 'w' || event.key === 'W') setTransformMode('translate');
     if (event.key === 'e' || event.key === 'E') setTransformMode('rotate');
-    if (event.key === 'r' || event.key === 'R') setTransformMode('scale');
     if (event.key === 'Delete' || event.key === 'Backspace') deleteSelectedItem();
   });
 
@@ -1243,6 +1589,134 @@
   window.setTransformMode = setTransformMode;
 
   // --- Resize ---
+  // ===== 병합: BoxHelper Selection Highlight =====
+  const selectionBox = new THREE.BoxHelper(undefined, 0x3182ce);
+  selectionBox.visible = false;
+  scene.add(selectionBox);
+
+  // ===== 병합: Accordion Toggle =====
+  document.querySelectorAll('.accordion-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.category;
+      const subList = document.getElementById('sub-' + cat);
+      if (!subList) return;
+
+      const isOpen = btn.classList.contains('open');
+      document.querySelectorAll('.accordion-btn.open').forEach(b => {
+        if (b !== btn) {
+          b.classList.remove('open');
+          const otherCat = b.dataset.category;
+          const otherList = document.getElementById('sub-' + otherCat);
+          if (otherList) otherList.classList.remove('open');
+        }
+      });
+      btn.classList.toggle('open');
+      subList.classList.toggle('open');
+    });
+  });
+
+  // ===== 병합: Sub-model buttons → addItem =====
+  document.querySelectorAll('.sub-model-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      if (ITEM_DATA[type]) addItem(type);
+    });
+  });
+
+  // ===== 병합: Floating Right Panel =====
+  const floatingPanel = document.getElementById('floating-right-panel');
+  const floatingTitle = document.getElementById('floating-title');
+  const colorPicker = document.getElementById('item-color');
+  const scaleSlider = document.getElementById('item-scale');
+  const scaleValue = document.getElementById('scale-value');
+  const colorHex = document.getElementById('color-hex');
+
+  function updateFloatingPanel(item) {
+    if (!item) {
+      floatingPanel.style.display = 'none';
+      return;
+    }
+    const type = item.userData.type;
+    const info = ITEM_DATA[type] || { name: type };
+    floatingTitle.textContent = info.name;
+
+    scaleSlider.value = item.scale.x;
+    scaleValue.textContent = item.scale.x.toFixed(1);
+
+    let foundColor = '#ffffff';
+    item.traverse(child => {
+      if (child.isMesh && child.material && child.material.color) {
+        foundColor = '#' + child.material.color.getHexString();
+      }
+    });
+    colorPicker.value = foundColor;
+    colorHex.textContent = foundColor;
+
+    floatingPanel.style.display = 'flex';
+  }
+
+  // Patch selectItem to update floating panel + BoxHelper
+  const origSelectItem = selectItem;
+  selectItem = function(item) {
+    origSelectItem(item);
+    if (item && item !== selectionBox.object) {
+      selectionBox.setFromObject(item);
+      selectionBox.visible = true;
+    } else {
+      selectionBox.visible = false;
+    }
+    updateFloatingPanel(item);
+  };
+  window.selectItem = selectItem;
+
+  // Close floating panel
+  document.getElementById('close-floating-panel').addEventListener('click', () => {
+    selectItem(null);
+    floatingPanel.style.display = 'none';
+  });
+
+  // Color picker
+  colorPicker.addEventListener('input', (e) => {
+    if (!selectedItem) return;
+    const newColor = e.target.value;
+    selectedItem.traverse(child => {
+      if (child.isMesh && child.material && child.material.color) {
+        if (!child.userData.materialCloned) {
+          child.material = child.material.clone();
+          child.userData.materialCloned = true;
+        }
+        child.material.color.set(newColor);
+      }
+    });
+    colorHex.textContent = newColor;
+  });
+
+  // Scale slider
+  scaleSlider.addEventListener('input', (e) => {
+    if (!selectedItem) return;
+    const val = parseFloat(e.target.value);
+    selectedItem.scale.set(val, val, val);
+    scaleValue.textContent = val.toFixed(1);
+    if (selectionBox.visible) selectionBox.update();
+  });
+
+  // Floating delete button
+  document.getElementById('floating-delete-btn').addEventListener('click', () => {
+    if (selectedItem) deleteSelectedItem();
+    floatingPanel.style.display = 'none';
+  });
+
+  // ===== 병합: Canvas clear button =====
+  document.getElementById('canvas-clear-btn').addEventListener('click', () => {
+    clearAll();
+    floatingPanel.style.display = 'none';
+  });
+
+  // ===== 병합: Topbar buttons =====
+  document.getElementById('topbar-save').addEventListener('click', handleSave);
+  document.getElementById('topbar-download').addEventListener('click', handleDownload);
+
+  // ===== Original: Resize handler =====
   window.addEventListener('resize', () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
@@ -1255,6 +1729,9 @@
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    if (selectedItem && selectionBox.visible) {
+      selectionBox.update();
+    }
     renderer.render(scene, camera);
   }
 
