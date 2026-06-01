@@ -198,11 +198,19 @@
     position: relative;
     min-width: 0;
     height: 100%;
+    overflow: hidden;
+    background: #f6f8fb;
   }
 
   #canvas-container {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
+    display: block;
+  }
+
+  #canvas-container canvas {
     display: block;
   }
 
@@ -239,6 +247,16 @@
     color: rgba(31, 41, 55, 0.62);
   }
 
+  .desk-stage .stage-header,
+  .desk-stage .info {
+    color: #1f2937;
+  }
+
+  .desk-stage .stage-header p,
+  .desk-stage .info {
+    color: rgba(31, 41, 55, 0.62);
+  }
+
   .desk-badge {
     align-self: flex-start;
     padding: 8px 12px;
@@ -251,6 +269,12 @@
   }
 
   body.theme-light .desk-badge {
+    border-color: rgba(31, 41, 55, 0.16);
+    background: rgba(255, 255, 255, 0.72);
+    color: #1f2937;
+  }
+
+  .desk-stage .desk-badge {
     border-color: rgba(31, 41, 55, 0.16);
     background: rgba(255, 255, 255, 0.72);
     color: #1f2937;
@@ -351,13 +375,29 @@
   }
 
   .control-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .save-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+  }
+
+  .background-upload {
+    display: grid;
+    gap: 8px;
+  }
+
+  .background-upload input[type="file"] {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: var(--panel-text);
+    font-size: 12px;
   }
 
   .option-button,
@@ -874,23 +914,25 @@
     </section>
 
     <section class="option-section work-control-panel">
-      <h2>Work Control</h2>
+      <h2>작업 관리</h2>
       <div class="control-grid">
-        <button class="action-button" id="undo-button" type="button">Undo</button>
-        <button class="action-button" id="reset-button" type="button">Reset</button>
-        <button class="action-button danger" id="delete-all-button" type="button">Delete All</button>
+        <button class="action-button" id="undo-button" type="button">되돌리기</button>
+        <button class="action-button" id="redo-button" type="button">다시 실행</button>
+        <button class="action-button" id="reset-button" type="button">전체 초기화</button>
+        <button class="action-button danger" id="delete-all-button" type="button">아이템 전체 삭제</button>
       </div>
-      <p class="panel-note">Undo / Redo: Ctrl+Z / Ctrl+Y</p>
+      <p class="panel-note">되돌리기/다시 실행은 직전 작업 기준입니다. 전체 초기화는 책상/배경/아이템을 기본값으로, 아이템 전체 삭제는 배치 아이템만 제거합니다.</p>
     </section>
 
-    <section class="option-section save-panel">
-      <h2>Save / Download</h2>
-      <div class="save-grid">
-        <button class="action-button" id="save-button" type="button">Save</button>
-        <button class="action-button" id="download-button" type="button">Download</button>
+    <section class="option-section background-panel">
+      <h2>배경 이미지</h2>
+      <div class="background-upload">
+        <input id="background-image-input" type="file" accept="image/*">
+        <button class="action-button" id="remove-background-button" type="button" disabled>배경 이미지 제거</button>
       </div>
-      <p class="panel-note">저장과 다운로드는 현재 UI 확인용 임시 버튼입니다.</p>
+      <p class="panel-note">업로드 이미지는 책상 뒤쪽 3D 벽으로 표시됩니다.</p>
     </section>
+
   </aside>
 </div>
 
@@ -996,10 +1038,19 @@
     'ultra-wide': { label: 'Ultra Wide', badge: 'Ultra Wide · 1800 x 800', width: 7.7, depth: 3.45 },
   };
 
+  const VIEWPORT_SCENE_COLOR = 0xf6f8fb;
+  const VIEWPORT_FLOOR_COLOR = 0xe6edf4;
+  const VIEWPORT_LEG_COLOR = 0x7a8494;
+  const VIEWPORT_GRID_COLOR = 0xaebdcc;
+  const WALL_BACKGROUND_Z = -3.35;
+  const WALL_BACKGROUND_MAX_WIDTH = 7.6;
+  const WALL_BACKGROUND_MAX_HEIGHT = 4.4;
+  const WALL_BACKGROUND_FLOOR_GAP = 0.05;
+
   const THEME_DATA = {
-    light: { scene: 0xf3f7fb, floor: 0xdbe5ee, desk: 0xe8eef4, leg: 0x8391a3, grid: 0xb8c6d4 },
-    wood: { scene: 0xf0e0c7, floor: 0xc8a77a, desk: 0x9a6239, leg: 0x4a3022, grid: 0x8f6a45 },
-    dark: { scene: 0x0a0a1a, floor: 0x1a1a2e, desk: 0x2d2d44, leg: 0x333344, grid: 0x0f3460 },
+    light: { desk: 0xe8eef4 },
+    wood: { desk: 0x9a6239 },
+    dark: { desk: 0x2d2d44 },
   };
 
   const container = document.getElementById('canvas-container');
@@ -1007,15 +1058,19 @@
   const selectedPreview = document.getElementById('selected-item-preview');
   const deleteSelectedButton = document.getElementById('delete-selected-button');
   const deskSizeBadge = document.getElementById('desk-size-badge');
+  const backgroundImageInput = document.getElementById('background-image-input');
+  const removeBackgroundButton = document.getElementById('remove-background-button');
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(THEME_DATA.light.scene);
+  const viewportSceneBackground = new THREE.Color(VIEWPORT_SCENE_COLOR);
+  scene.background = viewportSceneBackground;
 
   const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
   camera.position.set(8, 6, 10);
   camera.lookAt(0, 0, 0);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setClearColor(0xffffff, 0);
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
@@ -1062,7 +1117,7 @@
   // --- Floor / Room ---
   const floorGeo = new THREE.PlaneGeometry(14, 14);
   const floorMat = new THREE.MeshStandardMaterial({
-    color: THEME_DATA.light.floor, roughness: 0.8, metalness: 0.1,
+    color: VIEWPORT_FLOOR_COLOR, roughness: 0.8, metalness: 0.1,
   });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI / 2;
@@ -1070,7 +1125,7 @@
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const gridHelper = new THREE.GridHelper(14, 20, THEME_DATA.light.grid, THEME_DATA.light.grid);
+  const gridHelper = new THREE.GridHelper(14, 20, VIEWPORT_GRID_COLOR, VIEWPORT_GRID_COLOR);
   gridHelper.position.y = 0;
   scene.add(gridHelper);
 
@@ -1084,7 +1139,7 @@
   deskTop.receiveShadow = true;
   scene.add(deskTop);
 
-  const legMat = new THREE.MeshStandardMaterial({ color: THEME_DATA.light.leg, roughness: 0.7, metalness: 0.3 });
+  const legMat = new THREE.MeshStandardMaterial({ color: VIEWPORT_LEG_COLOR, roughness: 0.7, metalness: 0.3 });
   const deskLegs = [];
 
   function createDeskLeg(x, z) {
@@ -1104,7 +1159,7 @@
   const items = [];
   const STORAGE_KEY = 'myDeskSetupState';
   const HISTORY_LIMIT = 30;
-  const historyStack = [];
+  const undoStack = [];
   const redoStack = [];
   let selectedItem = null;
   let transformControls;
@@ -1113,6 +1168,8 @@
   let currentDeskSize = 'standard';
   let isRestoringState = false;
   let pointerDownInfo = null;
+  let wallBackgroundMesh = null;
+  let wallBackgroundObjectUrl = null;
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -1167,11 +1224,11 @@
     if (isRestoringState) return;
 
     const snapshot = JSON.parse(JSON.stringify(getSetupState()));
-    historyStack.push(snapshot);
+    undoStack.push(snapshot);
     redoStack.length = 0;
 
-    if (historyStack.length > HISTORY_LIMIT) {
-      historyStack.shift();
+    if (undoStack.length > HISTORY_LIMIT) {
+      undoStack.shift();
     }
   }
 
@@ -1353,6 +1410,7 @@
     const hasChanges = items.length > 0 || currentTheme !== 'light' || currentDeskSize !== 'standard';
     if (!options.skipHistory && !isRestoringState && hasChanges) pushHistory();
 
+    removeWallBackground({ keepRedo: true });
     clearAll({ skipHistory: true });
     changeTheme('light', { skipHistory: true });
     changeDeskSize('standard', { skipHistory: true });
@@ -1373,18 +1431,12 @@
     if (!options.skipHistory && !isRestoringState) pushHistory();
 
     currentTheme = themeName;
-    document.body.classList.remove('theme-light', 'theme-wood', 'theme-dark');
-    document.body.classList.add(`theme-${themeName}`);
 
     document.querySelectorAll('[data-theme]').forEach(button => {
       button.classList.toggle('active', button.dataset.theme === themeName);
     });
 
-    scene.background.setHex(theme.scene);
-    floorMat.color.setHex(theme.floor);
     deskMat.color.setHex(theme.desk);
-    legMat.color.setHex(theme.leg);
-    updateGridColor(theme.grid);
   }
 
   function updateDeskLegs(width, depth) {
@@ -1427,13 +1479,13 @@
   }
 
   function handleUndo() {
-    if (historyStack.length === 0) {
+    if (undoStack.length === 0) {
       console.log('undo history is empty');
       return;
     }
 
     redoStack.push(JSON.parse(JSON.stringify(getSetupState())));
-    const previousState = historyStack.pop();
+    const previousState = undoStack.pop();
     restoreSetupState(previousState);
   }
 
@@ -1443,9 +1495,104 @@
       return;
     }
 
-    historyStack.push(JSON.parse(JSON.stringify(getSetupState())));
+    undoStack.push(JSON.parse(JSON.stringify(getSetupState())));
+    if (undoStack.length > HISTORY_LIMIT) {
+      undoStack.shift();
+    }
     const nextState = redoStack.pop();
     restoreSetupState(nextState);
+  }
+
+  function disposeWallBackgroundMesh() {
+    if (!wallBackgroundMesh) return;
+
+    scene.remove(wallBackgroundMesh);
+    wallBackgroundMesh.geometry.dispose();
+    if (wallBackgroundMesh.material.map) {
+      wallBackgroundMesh.material.map.dispose();
+    }
+    wallBackgroundMesh.material.dispose();
+    wallBackgroundMesh = null;
+  }
+
+  function removeWallBackground(options = {}) {
+    disposeWallBackgroundMesh();
+
+    if (wallBackgroundObjectUrl) {
+      URL.revokeObjectURL(wallBackgroundObjectUrl);
+      wallBackgroundObjectUrl = null;
+    }
+
+    if (!options.keepInput) {
+      backgroundImageInput.value = '';
+    }
+    removeBackgroundButton.disabled = true;
+
+    if (!options.keepRedo) {
+      redoStack.length = 0;
+    }
+  }
+
+  function createWallBackgroundMesh(texture) {
+    const imageWidth = texture.image && texture.image.width ? texture.image.width : 1;
+    const imageHeight = texture.image && texture.image.height ? texture.image.height : 1;
+    const aspectRatio = imageWidth / imageHeight;
+    let wallWidth = WALL_BACKGROUND_MAX_WIDTH;
+    let wallHeight = wallWidth / aspectRatio;
+
+    if (wallHeight > WALL_BACKGROUND_MAX_HEIGHT) {
+      wallHeight = WALL_BACKGROUND_MAX_HEIGHT;
+      wallWidth = wallHeight * aspectRatio;
+    }
+
+    const geometry = new THREE.PlaneGeometry(wallWidth, wallHeight);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, wallHeight / 2 + WALL_BACKGROUND_FLOOR_GAP, WALL_BACKGROUND_Z);
+    mesh.name = 'WallBackgroundImage';
+    return mesh;
+  }
+
+  function setWallBackgroundFromImage(imageUrl) {
+    removeWallBackground({ keepInput: true, keepRedo: true });
+    wallBackgroundObjectUrl = imageUrl;
+    removeBackgroundButton.disabled = false;
+
+    new THREE.TextureLoader().load(
+      imageUrl,
+      texture => {
+        if (wallBackgroundObjectUrl !== imageUrl) {
+          texture.dispose();
+          return;
+        }
+
+        texture.colorSpace = THREE.SRGBColorSpace;
+        wallBackgroundMesh = createWallBackgroundMesh(texture);
+        scene.add(wallBackgroundMesh);
+      },
+      undefined,
+      error => {
+        console.warn('background wall image load failed', error);
+        removeWallBackground();
+      }
+    );
+  }
+
+  function handleBackgroundImageUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      removeWallBackground();
+      return;
+    }
+
+    setWallBackgroundFromImage(URL.createObjectURL(file));
+    redoStack.length = 0;
   }
 
   function handleSave() {
@@ -1568,10 +1715,11 @@
 
   deleteSelectedButton.addEventListener('click', deleteSelectedItem);
   document.getElementById('undo-button').addEventListener('click', handleUndo);
+  document.getElementById('redo-button').addEventListener('click', handleRedo);
   document.getElementById('reset-button').addEventListener('click', resetDeskSetup);
   document.getElementById('delete-all-button').addEventListener('click', clearAll);
-  document.getElementById('save-button').addEventListener('click', handleSave);
-  document.getElementById('download-button').addEventListener('click', handleDownload);
+  backgroundImageInput.addEventListener('change', handleBackgroundImageUpload);
+  removeBackgroundButton.addEventListener('click', removeWallBackground);
 
   window.addItem = addItem;
   window.clearAll = clearAll;
@@ -1580,9 +1728,12 @@
   window.resetDeskSetup = resetDeskSetup;
   window.changeTheme = changeTheme;
   window.changeDeskSize = changeDeskSize;
+  window.handleUndo = handleUndo;
   window.handleSave = handleSave;
   window.handleDownload = handleDownload;
   window.handleRedo = handleRedo;
+  window.setWallBackgroundFromImage = setWallBackgroundFromImage;
+  window.removeWallBackground = removeWallBackground;
   window.getSetupState = getSetupState;
   window.restoreSetupState = restoreSetupState;
   window.loadSavedSetup = loadSavedSetup;
