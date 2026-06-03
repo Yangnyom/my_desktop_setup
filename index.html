@@ -995,7 +995,7 @@
       stlLoader.load(
         url, 
         (geometry) => {
-          // ✅ 1. 중심을 직육면체의 정중앙(X, Y, Z 중앙)으로 맞춤
+          // 1. 중심을 직육면체의 정중앙(X, Y, Z 중앙)으로 맞춤
           geometry.center(); 
           
           const mesh = new THREE.Mesh(geometry, defaultMaterial);
@@ -1004,9 +1004,16 @@
 
           const scale = computeStandardScale(mesh, targetSize);
           mesh.scale.set(scale, scale, scale);
+
+          // ✅ 누워있는 특정 오브젝트 X축(빨간 선) 기준 90도 세우기
+          if (type === 'keyboard' || type === 'laptop' || type === 'mic') {
+            // 방향이 반대로 뒤집힌다면 Math.PI / 2 대신 -Math.PI / 2 로 변경해 보세요.
+            mesh.rotation.x = -Math.PI / 2; 
+          }
+
           group.add(mesh);
 
-          // ✅ 2. 비동기 로드 완료 후, 중심축이 중앙이라 바닥에 파묻힌 절반만큼 위로 끌어올림
+          // 2. 비동기 로드 완료 후, 중심축이 중앙이라 바닥에 파묻힌 절반만큼 위로 끌어올림
           const box = new THREE.Box3().setFromObject(group);
           const deskSurfaceY = 0.675;
           if (box.min.y < deskSurfaceY) {
@@ -1031,17 +1038,21 @@
           const scale = computeStandardScale(model, targetSize);
           model.scale.set(scale, scale, scale);
 
-          // ✅ 1. Bounding Box를 계산하여 모델의 X, Y, Z 중심을 0점(Group의 중앙)으로 맞춤
+          // 1. Bounding Box를 계산하여 모델의 X, Y, Z 중심을 0점(Group의 중앙)으로 맞춤
           const box = new THREE.Box3().setFromObject(model);
           const center = new THREE.Vector3();
           box.getCenter(center);
           
           model.position.set(-center.x, -center.y, -center.z);
 
+          // ✅ GLTF 모델 중에서도 누워있는 게 있다면 여기에 동일하게 추가 가능
+          if (type === 'keyboard' || type === 'laptop' || type === 'mic') {
+            model.rotation.x = -Math.PI / 2;
+          }
+
           group.add(model);
 
-          // ✅ 2. 비동기 로드 완료 후, 파묻힌 부분 끌어올리기
-          // model.position을 옮긴 후이므로 다시 Group 기준으로 Box를 계산해야 합니다.
+          // 2. 비동기 로드 완료 후, 파묻힌 부분 끌어올리기
           const groupBox = new THREE.Box3().setFromObject(group);
           const deskSurfaceY = 0.675;
           if (groupBox.min.y < deskSurfaceY) {
