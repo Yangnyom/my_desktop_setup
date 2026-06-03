@@ -778,7 +778,7 @@
   }
 </style>
 </head>
-<body class="theme-light desk-size-standard">
+<body class="theme-light">
 
 <div id="topbar">
   <div class="topbar-logo"><span>3D</span> Desk Setup</div>
@@ -797,6 +797,7 @@
     </div>
 
     <div class="category-list" id="category-list">
+
       <div class="category-group">
         <button class="accordion-btn" data-category="monitor"><span class="acc-icon">🖥</span><span class="acc-label">모니터</span><span class="arrow">▼</span></button>
         <div class="sub-model-list" id="sub-monitor">
@@ -807,6 +808,8 @@
         <button class="accordion-btn" data-category="keyboard"><span class="acc-icon">⌨</span><span class="acc-label">키보드</span><span class="arrow">▼</span></button>
         <div class="sub-model-list" id="sub-keyboard">
           <button class="sub-model-btn" data-type="keyboard">커스텀 키보드</button>
+          <button class="sub-model-btn" data-type="full-keyboard">Full Keyboard</button>
+          <button class="sub-model-btn" data-type="60-keyboard">60% Keyboard</button>
         </div>
       </div>
       <div class="category-group">
@@ -822,15 +825,39 @@
         </div>
       </div>
       <div class="category-group">
+        <button class="accordion-btn" data-category="stand"><span class="acc-icon">📐</span><span class="acc-label">거치대</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-stand">
+          <button class="sub-model-btn" data-type="notebook-stand">Notebook Stand</button>
+          <button class="sub-model-btn" data-type="notebook-stand-1">Notebook Stand Pro</button>
+        </div>
+      </div>
+      <div class="category-group">
         <button class="accordion-btn" data-category="pc"><span class="acc-icon">🖧</span><span class="acc-label">본체</span><span class="arrow">▼</span></button>
         <div class="sub-model-list" id="sub-pc">
           <button class="sub-model-btn" data-type="pc">데스크탑 PC</button>
         </div>
       </div>
       <div class="category-group">
+        <button class="accordion-btn" data-category="speaker"><span class="acc-icon">🔊</span><span class="acc-label">스피커</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-speaker">
+          <button class="sub-model-btn" data-type="speaker1">Speaker L</button>
+          <button class="sub-model-btn" data-type="speaker2">Speaker R</button>
+          <button class="sub-model-btn" data-type="speaker3">Subwoofer</button>
+        </div>
+      </div>
+      <div class="category-group">
         <button class="accordion-btn" data-category="mic"><span class="acc-icon">🎙</span><span class="acc-label">마이크</span><span class="arrow">▼</span></button>
         <div class="sub-model-list" id="sub-mic">
           <button class="sub-model-btn" data-type="mic">스튜디오 마이크</button>
+          <button class="sub-model-btn" data-type="mic2">Premium Mic</button>
+        </div>
+      </div>
+      <div class="category-group">
+        <button class="accordion-btn" data-category="lighting"><span class="acc-icon">💡</span><span class="acc-label">조명</span><span class="arrow">▼</span></button>
+        <div class="sub-model-list" id="sub-lighting">
+          <button class="sub-model-btn" data-type="lighting1">Desk Lamp</button>
+          <button class="sub-model-btn" data-type="lighting2">LED Strip</button>
+          <button class="sub-model-btn" data-type="lighting3">Floor Lamp</button>
         </div>
       </div>
     </div>
@@ -846,7 +873,8 @@
       <div class="desk-badge" id="desk-size-badge">Standard · 1400 x 700</div>
     </div>
 
-    <div id="canvas-container"></div>
+    <div id="canvas-container">
+    </div>
 
     <div id="canvas-action-panel">
       <button class="action-btn danger" id="canvas-clear-btn">🗑️ 모두 지우기</button>
@@ -903,13 +931,18 @@
       </div>
     </section>
 
-    <section class="option-section desk-size-panel">
-      <h2>Desk Size</h2>
-      <div class="size-grid">
-        <button class="option-button size-button" type="button" data-size="compact">Compact<span>1200 x 600</span></button>
-        <button class="option-button size-button active" type="button" data-size="standard">Standard<span>1400 x 700</span></button>
-        <button class="option-button size-button" type="button" data-size="wide">Wide<span>1600 x 800</span></button>
-        <button class="option-button size-button" type="button" data-size="ultra-wide">Ultra Wide<span>1800 x 800</span></button>
+    <section class="option-section desk-design-panel">
+      <h2>Desk Design</h2>
+      <div class="option-row">
+        <button class="option-button active" type="button" data-desk-design="desk1">Wooden</button>
+        <button class="option-button" type="button" data-desk-design="desk2">Glass</button>
+        <button class="option-button" type="button" data-desk-design="desk3">Gaming</button>
+      </div>
+      <div class="background-upload" style="margin-top:10px">
+        <label style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--panel-muted)">
+          🎨 Desk Color <span id="desk-color-hex">#e8eef4</span>
+        </label>
+        <input type="color" id="desk-color-picker" value="#e8eef4">
       </div>
     </section>
 
@@ -954,11 +987,25 @@
 
   const ITEM_DATA = {
     keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl', standardSize: 0.8 },
+    'full-keyboard': { name: 'Full Keyboard', brand: 'Setup', model: 'full_keyboard', category: 'Device', group: 'device', icon: '⌨', url: './objects/full keyboard.stl', standardSize: 0.8 },
+    '60-keyboard': { name: '60% Keyboard', brand: 'Setup', model: '60_keyboard', category: 'Device', group: 'device', icon: '⌨', url: './objects/60%25keyboard.stl', standardSize: 0.6 },
     mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl', standardSize: 0.35 },
+    'mic2': { name: 'Premium Mic', brand: 'Setup', model: 'mic2', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic2.stl', standardSize: 0.35 },
     laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl', standardSize: 0.65 },
+    'notebook-stand': { name: 'Notebook Stand', brand: 'Setup', model: 'notebook_stand', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand.stl', standardSize: 0.4 },
+    'notebook-stand-1': { name: 'Notebook Stand Pro', brand: 'Setup', model: 'notebook_stand_1', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand_1.stl', standardSize: 0.4 },
     mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb', standardSize: 0.25 },
     monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb', standardSize: 0.7 },
-    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb', standardSize: 0.5 }
+    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb', standardSize: 0.5 },
+    desk1: { name: 'Wooden Desk', brand: 'Setup', model: 'desk1', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk1.glb', standardSize: 1.0 },
+    desk2: { name: 'Glass Desk', brand: 'Setup', model: 'desk2', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk2.glb', standardSize: 1.0 },
+    desk3: { name: 'Gaming Desk', brand: 'Setup', model: 'desk3', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk3.glb', standardSize: 1.0 },
+    lighting1: { name: 'Desk Lamp', brand: 'Setup', model: 'lighting1', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting1.glb', standardSize: 0.3 },
+    lighting2: { name: 'LED Strip', brand: 'Setup', model: 'lighting2', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting2.glb', standardSize: 0.3 },
+    lighting3: { name: 'Floor Lamp', brand: 'Setup', model: 'lighting3', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting3.glb', standardSize: 0.4 },
+    speaker1: { name: 'Speaker L', brand: 'Setup', model: 'speaker1', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker1.glb', standardSize: 0.3 },
+    speaker2: { name: 'Speaker R', brand: 'Setup', model: 'speaker2', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker2.glb', standardSize: 0.3 },
+    speaker3: { name: 'Subwoofer', brand: 'Setup', model: 'speaker3', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker3.glb', standardSize: 0.35 }
   };
 
   const stlLoader = new STLLoader();
@@ -1006,8 +1053,8 @@
           mesh.scale.set(scale, scale, scale);
 
           // ✅ 누워있는 특정 오브젝트 X축(빨간 선) 기준 90도 세우기
-          if (type === 'keyboard' || type === 'laptop' || type === 'mic') {
-            // 방향이 반대로 뒤집힌다면 Math.PI / 2 대신 -Math.PI / 2 로 변경해 보세요.
+          // 방향이 반대로 뒤집힌다면 Math.PI / 2 대신 -Math.PI / 2 로 변경해 보세요.
+          if (type === 'keyboard' || type === 'laptop' || type === 'mic' || type === 'full-keyboard' || type === '60-keyboard' || type === 'mic2' || type === 'notebook-stand' || type === 'notebook-stand-1') {
             mesh.rotation.x = -Math.PI / 2; 
           }
 
@@ -1015,7 +1062,6 @@
 
           // 2. 비동기 로드 완료 후, 중심축이 중앙이라 바닥에 파묻힌 절반만큼 위로 끌어올림
           const box = new THREE.Box3().setFromObject(group);
-          const deskSurfaceY = 0.675;
           if (box.min.y < deskSurfaceY) {
             group.position.y += (deskSurfaceY - box.min.y);
           }
@@ -1046,7 +1092,7 @@
           model.position.set(-center.x, -center.y, -center.z);
 
           // ✅ GLTF 모델 중에서도 누워있는 게 있다면 여기에 동일하게 추가 가능
-          if (type === 'keyboard' || type === 'laptop' || type === 'mic') {
+          if (type === 'keyboard' || type === 'laptop' || type === 'mic' || type === 'full-keyboard' || type === '60-keyboard' || type === 'mic2' || type === 'notebook-stand' || type === 'notebook-stand-1') {
             model.rotation.x = -Math.PI / 2;
           }
 
@@ -1054,7 +1100,6 @@
 
           // 2. 비동기 로드 완료 후, 파묻힌 부분 끌어올리기
           const groupBox = new THREE.Box3().setFromObject(group);
-          const deskSurfaceY = 0.675;
           if (groupBox.min.y < deskSurfaceY) {
             group.position.y += (deskSurfaceY - groupBox.min.y);
           }
@@ -1066,12 +1111,7 @@
 
     return group;
   }
-  const DESK_SIZE_DATA = {
-    compact: { label: 'Compact', badge: 'Compact · 1200 x 600', width: 5.1, depth: 2.55 },
-    standard: { label: 'Standard', badge: 'Standard · 1400 x 700', width: 6, depth: 3 },
-    wide: { label: 'Wide', badge: 'Wide · 1600 x 800', width: 6.9, depth: 3.45 },
-    'ultra-wide': { label: 'Ultra Wide', badge: 'Ultra Wide · 1800 x 800', width: 7.7, depth: 3.45 },
-  };
+
 
   const VIEWPORT_SCENE_COLOR = 0xf6f8fb;
   const VIEWPORT_FLOOR_COLOR = 0xe6edf4;
@@ -1119,8 +1159,9 @@
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.maxPolarAngle = Math.PI / 2.3;
-  controls.minDistance = 3;
-  controls.maxDistance = 20;
+  controls.minDistance = 0.5;
+  controls.maxDistance = Infinity;
+  controls.mouseButtons = { LEFT: null, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
   controls.update();
   
 
@@ -1164,31 +1205,133 @@
   gridHelper.position.y = 0;
   scene.add(gridHelper);
 
-  // --- Desk ---
-  const deskMat = new THREE.MeshStandardMaterial({
-    color: THEME_DATA.light.desk, roughness: 0.6, metalness: 0.1,
-  });
-  const deskTop = new THREE.Mesh(new THREE.BoxGeometry(6, 0.15, 3), deskMat);
-  deskTop.position.y = 0.6;
-  deskTop.castShadow = true;
-  deskTop.receiveShadow = true;
-  scene.add(deskTop);
+  let deskSurfaceY = 0;
 
-  const legMat = new THREE.MeshStandardMaterial({ color: VIEWPORT_LEG_COLOR, roughness: 0.7, metalness: 0.3 });
-  const deskLegs = [];
+  // --- Desk Design Management ---
+  let currentDeskDesign = 'desk1';
+  let deskModelGroup = null;
+  let deskModelNativeWidth = null;
+  let deskSizeWidth = 6;
 
-  function createDeskLeg(x, z) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 8), legMat);
-    leg.position.set(x, 0.3, z);
-    leg.castShadow = true;
-    scene.add(leg);
-    deskLegs.push(leg);
+  const DESK_DESIGN_DATA = {
+    desk1: { name: 'Wooden Desk', url: './objects/desk1.glb', defaultWidth: 3.3, rotationY: -Math.PI / 2 },
+    desk2: { name: 'Glass Desk', url: './objects/desk2.glb', defaultWidth: 4.6 },
+    desk3: { name: 'Gaming Desk', url: './objects/desk3.glb', defaultWidth: 6.0 },
+  };
+
+  function removeDeskModel() {
+    if (deskModelGroup) {
+      scene.remove(deskModelGroup);
+      deskModelGroup.traverse(child => {
+        if (child.isMesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+      });
+      deskModelGroup = null;
+    }
   }
 
-  createDeskLeg(-2.6, -1.2);
-  createDeskLeg(2.6, -1.2);
-  createDeskLeg(-2.6, 1.2);
-  createDeskLeg(2.6, 1.2);
+  function loadAndScaleDesk(designName, oldY) {
+    const design = DESK_DESIGN_DATA[designName];
+    if (!design) return;
+
+    removeDeskModel();
+
+    gltfLoader.load(
+      design.url,
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        if (design.rotationY) {
+          model.rotation.y = design.rotationY;
+        }
+
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        deskModelNativeWidth = size.x;
+        const s = deskSizeWidth / Math.max(size.x, 0.001);
+        model.scale.set(s, s, s);
+
+        const raisedBox = new THREE.Box3().setFromObject(model);
+        model.position.y = -raisedBox.min.y;
+
+        const finalBox = new THREE.Box3().setFromObject(model);
+        const newY = finalBox.max.y;
+        const delta = newY - oldY;
+
+        let initialColor = '#888888';
+        model.traverse(child => {
+          if (child.isMesh && child.material && child.material.color) {
+            initialColor = '#' + child.material.color.getHexString();
+          }
+        });
+        syncDeskColorPicker(initialColor);
+
+        deskModelGroup = model;
+        deskSurfaceY = newY;
+        deskSizeBadge.textContent = `Desk · ${deskSizeWidth.toFixed(1)} x ${(deskSizeWidth / 2).toFixed(1)}`;
+        scene.add(deskModelGroup);
+
+        items.forEach(item => {
+          item.position.y += delta;
+          const ibox = new THREE.Box3().setFromObject(item);
+          if (ibox.min.y < deskSurfaceY) {
+            item.position.y += deskSurfaceY - ibox.min.y + 0.01;
+          }
+        });
+      },
+      undefined,
+      (error) => console.error('Desk GLB load error:', error)
+    );
+  }
+
+  function changeDeskDesign(designName, options = {}) {
+    const design = DESK_DESIGN_DATA[designName];
+    if (!design) return;
+    if (designName === currentDeskDesign && !isRestoringState) return;
+    if (!options.skipHistory && !isRestoringState) pushHistory();
+
+    const oldY = deskSurfaceY;
+    currentDeskDesign = designName;
+
+    if (design.defaultWidth && design.defaultWidth !== deskSizeWidth) {
+      deskSizeWidth = design.defaultWidth;
+    }
+
+    document.querySelectorAll('[data-desk-design]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.deskDesign === designName);
+    });
+
+    loadAndScaleDesk(designName, oldY);
+  }
+
+  function syncDeskColorPicker(hexColor) {
+    document.getElementById('desk-color-hex').textContent = hexColor;
+    document.getElementById('desk-color-picker').value = hexColor;
+  }
+
+  function changeDeskColor(hexColor) {
+    if (!deskModelGroup) return;
+    deskModelGroup.traverse(child => {
+      if (child.isMesh && child.material && child.material.color) {
+        if (!child.userData.materialCloned) {
+          child.material = child.material.clone();
+          child.userData.materialCloned = true;
+        }
+        child.material.color.set(hexColor);
+      }
+    });
+    syncDeskColorPicker(hexColor);
+  }
 
   // --- Items storage ---
   const items = [];
@@ -1196,13 +1339,16 @@
   const HISTORY_LIMIT = 30;
   const undoStack = [];
   const redoStack = [];
-  let selectedItem = null;
+  let selectedItems = [];
+  let transformPivot = null;
+  const pivotInitPos = new THREE.Vector3();
+  const pivotInitQuat = new THREE.Quaternion();
   let transformControls;
   let transformMode = 'translate';
+
   let currentTheme = 'light';
-  let currentDeskSize = 'standard';
   let isRestoringState = false;
-  let pointerDownInfo = null;
+  let isTransforming = false;
   let wallBackgroundMesh = null;
   let wallBackgroundObjectUrl = null;
 
@@ -1233,10 +1379,9 @@
 
 
   function getDeskBounds() {
-    const size = DESK_SIZE_DATA[currentDeskSize];
     return {
-      halfW: size.width / 2 - 0.22,
-      halfZ: size.depth / 2 - 0.18,
+      halfW: deskSizeWidth / 2 - 0.22,
+      halfZ: deskSizeWidth / 4 - 0.18,
     };
   }
 
@@ -1251,7 +1396,8 @@
         },
       })),
       theme: currentTheme,
-      deskSize: currentDeskSize,
+      deskSize: deskSizeWidth,
+      deskDesign: currentDeskDesign,
     };
   }
 
@@ -1268,7 +1414,7 @@
   }
 
   function getSafePosition(position) {
-    const fallback = { x: 0, y: 0.68, z: 0 };
+    const fallback = { x: 0, y: deskSurfaceY + 0.01, z: 0 };
     if (!position) return fallback;
 
     return {
@@ -1284,12 +1430,14 @@
     isRestoringState = true;
     try {
       const restoredTheme = THEME_DATA[state.theme] ? state.theme : 'light';
-      const restoredDeskSize = DESK_SIZE_DATA[state.deskSize] ? state.deskSize : 'standard';
+      const restoredDeskSize = typeof state.deskSize === 'number' ? state.deskSize : 6;
+      const restoredDeskDesign = DESK_DESIGN_DATA[state.deskDesign] ? state.deskDesign : 'desk1';
       const restoredItems = Array.isArray(state.items) ? state.items : [];
 
       clearAll({ skipHistory: true });
       changeTheme(restoredTheme, { skipHistory: true });
       changeDeskSize(restoredDeskSize, { skipHistory: true });
+      changeDeskDesign(restoredDeskDesign, { skipHistory: true });
 
       restoredItems.forEach(savedItem => {
         if (!savedItem || !ITEM_DATA[savedItem.type]) return;
@@ -1346,7 +1494,7 @@
     } else {
       const x = (Math.random() - 0.5) * bounds.halfW * 1.6;
       const z = (Math.random() - 0.5) * bounds.halfZ * 1.6;
-      group.position.set(x, 0.68, z);
+      group.position.set(x, deskSurfaceY + 0.01, z);
     }
 
     scene.add(group);
@@ -1361,92 +1509,158 @@
     transformControls.rotationSnap = Math.PI / 18;
     
     transformControls.addEventListener('dragging-changed', event => {
+      isTransforming = event.value;
       controls.enabled = !event.value;
-      if (event.value && selectedItem) pushHistory();
+      if (selectedItems.length > 1 && transformPivot) {
+        if (event.value) {
+          selectedItems.forEach(item => transformPivot.attach(item));
+        } else {
+          selectedItems.forEach(item => scene.attach(item));
+        }
+      }
+      if (event.value && selectedItems.length > 0) {
+        if (!isRestoringState) pushHistory();
+      }
     });
     
     transformControls.addEventListener('objectChange', () => {
       const obj = transformControls.object;
       if (!obj) return;
 
-      // 1. X, Z 축 범위 제한 (translate 모드일 때만 책상 밖으로 나가는 것 방지)
-      if (transformControls.mode === 'translate') {
-        const bounds = getDeskBounds();
-        obj.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, obj.position.x));
-        obj.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, obj.position.z));
+      if (selectedItems.length === 1) {
+        const item = selectedItems[0];
+        if (transformControls.mode === 'translate') {
+          const bounds = getDeskBounds();
+          item.position.x = Math.max(-bounds.halfW, Math.min(bounds.halfW, item.position.x));
+          item.position.z = Math.max(-bounds.halfZ, Math.min(bounds.halfZ, item.position.z));
+        }
+
+        const box = new THREE.Box3().setFromObject(item);
+        if (box.min.y < deskSurfaceY) {
+          item.position.y += deskSurfaceY - box.min.y;
+        }
+
+        updateSelectionUI();
       }
-
-      // ✅ 2. 바닥 뚫림 완벽 방지 로직 (이동, 회전 모두 적용)
-      // 현재 오브젝트가 회전된 상태까지 모두 고려하여 실제 3D 공간상의 전체 크기(Box)를 계산합니다.
-      const box = new THREE.Box3().setFromObject(obj);
-      const deskSurfaceY = 0.675; // 책상 상판 표면 높이
-
-      // 박스의 가장 낮은 지점(box.min.y)이 책상 표면보다 아래로 파고들었다면?
-      if (box.min.y < deskSurfaceY) {
-        // 파고든 깊이(차이)만큼 오브젝트의 Y 위치를 강제로 위로 밀어올립니다.
-        const difference = deskSurfaceY - box.min.y;
-        obj.position.y += difference;
-      }
-
-      if (selectedItem) renderSelectedItemPanel();
     });
     
     scene.add(transformControls);
   }
 
-  function selectItem(item) {
-    selectedItem = item || null;
-
-    if (selectedItem) {
-      transformControls.attach(selectedItem);
-      transformControls.setMode(transformMode);
-      transformControls.setSize(0.8);
-    } else {
+  function updateTransformTarget() {
+    if (transformPivot) {
+      [...transformPivot.children].forEach(child => {
+        if (selectedItems.includes(child)) scene.attach(child);
+      });
       transformControls.detach();
+      scene.remove(transformPivot);
+      transformPivot = null;
     }
 
-    renderSelectedItemPanel();
+    if (selectedItems.length === 0) {
+      transformControls.detach();
+      return;
+    }
+
+    if (selectedItems.length === 1) {
+      const item = selectedItems[0];
+      transformControls.attach(item);
+      transformControls.setMode(transformMode);
+      transformControls.setSize(0.8);
+      return;
+    }
+
+    transformPivot = new THREE.Group();
+    transformPivot.visible = false;
+    const centroid = new THREE.Vector3();
+    selectedItems.forEach(item => centroid.add(item.position));
+    centroid.divideScalar(selectedItems.length);
+    transformPivot.position.copy(centroid);
+    scene.add(transformPivot);
+    transformControls.attach(transformPivot);
+    transformControls.setMode(transformMode);
+    transformControls.setSize(0.8);
+    pivotInitPos.copy(centroid);
+    pivotInitQuat.identity();
   }
 
-  function renderSelectedItemPanel() {
-    if (!selectedItem) {
+  function selectItem(item) {
+    selectedItems = item ? [item] : [];
+    updateTransformTarget();
+    updateSelectionUI();
+  }
+
+  function selectItems(items) {
+    selectedItems = [...items];
+    updateTransformTarget();
+    updateSelectionUI();
+  }
+
+  function clearSelection() {
+    selectedItems = [];
+    updateTransformTarget();
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    if (selectedItems.length === 0) {
       selectedPreview.classList.add('empty');
       selectedPreview.innerHTML = `
         <p>선택된 아이템이 없습니다.</p>
         <span>데스크 위 아이템을 클릭하면 정보가 표시됩니다.</span>
       `;
       deleteSelectedButton.disabled = true;
+      selectionBox.visible = false;
+      floatingPanel.style.display = 'none';
       return;
     }
 
-    const type = selectedItem.userData.type;
-    const item = ITEM_DATA[type] || { name: type, brand: 'Unknown', model: '-', category: 'Item', icon: '□' };
-
-    selectedPreview.classList.remove('empty');
-    selectedPreview.innerHTML = `
-      <div class="selected-card">
-        <div class="selected-icon">${item.icon}</div>
-        <div class="selected-meta">
-          <h3>${item.name}</h3>
-          <p>Brand: ${item.brand}</p>
-          <p>Model: ${item.model}</p>
-          <p>Category: ${item.category}</p>
-        </div>
-      </div>
-    `;
     deleteSelectedButton.disabled = false;
+
+    if (selectedItems.length === 1) {
+      const item = selectedItems[0];
+      const type = item.userData.type;
+      const info = ITEM_DATA[type] || { name: type, brand: 'Unknown', model: '-', category: 'Item', icon: '□' };
+
+      selectedPreview.classList.remove('empty');
+      selectedPreview.innerHTML = `
+        <div class="selected-card">
+          <div class="selected-icon">${info.icon}</div>
+          <div class="selected-meta">
+            <h3>${info.name}</h3>
+            <p>Brand: ${info.brand}</p>
+            <p>Model: ${info.model}</p>
+            <p>Category: ${info.category}</p>
+          </div>
+        </div>
+      `;
+
+      selectionBox.setFromObject(item);
+      selectionBox.visible = true;
+      updateFloatingPanel(item);
+    } else {
+      selectedPreview.classList.remove('empty');
+      selectedPreview.innerHTML = `
+        <p><strong>${selectedItems.length}개 아이템 선택됨</strong></p>
+        <span>함께 이동/회전할 수 있습니다.</span>
+      `;
+      selectionBox.visible = false;
+      floatingPanel.style.display = 'none';
+    }
   }
 
   function deleteSelectedItem(options = {}) {
-    if (!selectedItem) return;
+    if (selectedItems.length === 0) return;
     if (!options.skipHistory && !isRestoringState) pushHistory();
 
-    const target = selectedItem;
-    const index = items.indexOf(target);
-    if (index > -1) items.splice(index, 1);
+    const targets = [...selectedItems];
+    clearSelection();
 
-    scene.remove(target);
-    selectItem(null);
+    targets.forEach(target => {
+      const index = items.indexOf(target);
+      if (index > -1) items.splice(index, 1);
+      scene.remove(target);
+    });
   }
 
   function clearAll(options = {}) {
@@ -1454,17 +1668,18 @@
 
     items.forEach(item => scene.remove(item));
     items.length = 0;
-    selectItem(null);
+    clearSelection();
   }
 
   function resetDeskSetup(options = {}) {
-    const hasChanges = items.length > 0 || currentTheme !== 'light' || currentDeskSize !== 'standard';
+    const hasChanges = items.length > 0 || currentTheme !== 'light' || deskSizeWidth !== 6 || currentDeskDesign !== 'desk1';
     if (!options.skipHistory && !isRestoringState && hasChanges) pushHistory();
 
     removeWallBackground({ keepRedo: true });
     clearAll({ skipHistory: true });
     changeTheme('light', { skipHistory: true });
-    changeDeskSize('standard', { skipHistory: true });
+    changeDeskSize(6, { skipHistory: true });
+    changeDeskDesign('desk1', { skipHistory: true });
   }
 
   function updateGridColor(color) {
@@ -1487,18 +1702,7 @@
       button.classList.toggle('active', button.dataset.theme === themeName);
     });
 
-    deskMat.color.setHex(theme.desk);
-  }
-
-  function updateDeskLegs(width, depth) {
-    const x = width / 2 - 0.4;
-    const z = depth / 2 - 0.3;
-    const positions = [[-x, -z], [x, -z], [-x, z], [x, z]];
-
-    deskLegs.forEach((leg, index) => {
-      leg.position.x = positions[index][0];
-      leg.position.z = positions[index][1];
-    });
+    changeDeskColor('#' + theme.desk.toString(16).padStart(6, '0'));
   }
 
   function clampItemsToDesk() {
@@ -1509,24 +1713,30 @@
     });
   }
 
-  function changeDeskSize(sizeName, options = {}) {
-    const size = DESK_SIZE_DATA[sizeName];
-    if (!size) return;
-    if (sizeName === currentDeskSize && !isRestoringState) return;
+  function changeDeskSize(width, options = {}) {
+    width = Math.round(width * 10) / 10;
+    if (width === deskSizeWidth && !isRestoringState) return;
     if (!options.skipHistory && !isRestoringState) pushHistory();
 
-    currentDeskSize = sizeName;
-    document.body.classList.remove('desk-size-compact', 'desk-size-standard', 'desk-size-wide', 'desk-size-ultra-wide');
-    document.body.classList.add(`desk-size-${sizeName}`);
+    const oldY = deskSurfaceY;
+    deskSizeWidth = width;
 
-    document.querySelectorAll('[data-size]').forEach(button => {
-      button.classList.toggle('active', button.dataset.size === sizeName);
-    });
+    if (deskModelGroup && deskModelNativeWidth) {
+      const s = width / deskModelNativeWidth;
+      deskModelGroup.scale.set(s, s, s);
+      const updatedBox = new THREE.Box3().setFromObject(deskModelGroup);
+      deskModelGroup.position.y = -updatedBox.min.y;
+      const finalBox = new THREE.Box3().setFromObject(deskModelGroup);
+      deskSurfaceY = finalBox.max.y;
 
-    deskTop.scale.set(size.width / 6, 1, size.depth / 3);
-    updateDeskLegs(size.width, size.depth);
+      const delta = deskSurfaceY - oldY;
+      items.forEach(item => {
+        item.position.y += delta;
+      });
+    }
+
     clampItemsToDesk();
-    deskSizeBadge.textContent = size.badge;
+    deskSizeBadge.textContent = `Desk · ${width.toFixed(1)} x ${(width / 2).toFixed(1)}`;
   }
 
   function handleUndo() {
@@ -1693,27 +1903,18 @@
     if (intersects.length > 0) {
       selectItem(getItemRoot(intersects[0].object));
     } else {
-      selectItem(null);
+      clearSelection();
     }
   }
 
   renderer.domElement.addEventListener('pointerdown', event => {
     if (event.button !== 0) return;
-    pointerDownInfo = {
-      x: event.clientX,
-      y: event.clientY,
-      time: Date.now(),
-    };
+    if (isTransforming) return;
   });
 
   renderer.domElement.addEventListener('pointerup', event => {
-    if (event.button !== 0 || !pointerDownInfo) return;
-
-    const moveDistance = Math.hypot(event.clientX - pointerDownInfo.x, event.clientY - pointerDownInfo.y);
-    const elapsedTime = Date.now() - pointerDownInfo.time;
-    pointerDownInfo = null;
-
-    if (moveDistance > 6 || elapsedTime > 350) return;
+    if (event.button !== 0) return;
+    if (isTransforming) return;
     selectFromPointer(event);
   });
 
@@ -1721,8 +1922,12 @@
     button.addEventListener('click', () => changeTheme(button.dataset.theme));
   });
 
-  document.querySelectorAll('[data-size]').forEach(button => {
-    button.addEventListener('click', () => changeDeskSize(button.dataset.size));
+  document.querySelectorAll('[data-desk-design]').forEach(button => {
+    button.addEventListener('click', () => changeDeskDesign(button.dataset.deskDesign));
+  });
+
+  document.getElementById('desk-color-picker').addEventListener('input', (e) => {
+    changeDeskColor(e.target.value);
   });
 
   document.querySelectorAll('[data-category]').forEach(button => {
@@ -1736,7 +1941,7 @@
 
   function setTransformMode(mode) {
     transformMode = mode;
-    if (selectedItem) {
+    if (selectedItems.length > 0) {
       transformControls.setMode(mode);
     }
     document.querySelectorAll('[data-transform]').forEach(button => {
@@ -1857,20 +2062,6 @@
     floatingPanel.style.display = 'flex';
   }
 
-  // Patch selectItem to update floating panel + BoxHelper
-  const origSelectItem = selectItem;
-  selectItem = function(item) {
-    origSelectItem(item);
-    if (item && item !== selectionBox.object) {
-      selectionBox.setFromObject(item);
-      selectionBox.visible = true;
-    } else {
-      selectionBox.visible = false;
-    }
-    updateFloatingPanel(item);
-  };
-  window.selectItem = selectItem;
-
   // Close floating panel
   document.getElementById('close-floating-panel').addEventListener('click', () => {
     selectItem(null);
@@ -1879,9 +2070,10 @@
 
   // Color picker
   colorPicker.addEventListener('input', (e) => {
-    if (!selectedItem) return;
+    if (selectedItems.length !== 1) return;
+    const item = selectedItems[0];
     const newColor = e.target.value;
-    selectedItem.traverse(child => {
+    item.traverse(child => {
       if (child.isMesh && child.material && child.material.color) {
         if (!child.userData.materialCloned) {
           child.material = child.material.clone();
@@ -1895,16 +2087,17 @@
 
   // Scale slider
   scaleSlider.addEventListener('input', (e) => {
-    if (!selectedItem) return;
+    if (selectedItems.length !== 1) return;
+    const item = selectedItems[0];
     const val = parseFloat(e.target.value);
-    selectedItem.scale.set(val, val, val);
+    item.scale.set(val, val, val);
     scaleValue.textContent = val.toFixed(1);
     if (selectionBox.visible) selectionBox.update();
   });
 
   // Floating delete button
   document.getElementById('floating-delete-btn').addEventListener('click', () => {
-    if (selectedItem) deleteSelectedItem();
+    if (selectedItems.length > 0) deleteSelectedItem();
     floatingPanel.style.display = 'none';
   });
 
@@ -1931,7 +2124,7 @@
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
-    if (selectedItem && selectionBox.visible) {
+    if (selectedItems.length === 1 && selectionBox.visible) {
       selectionBox.update();
     }
     renderer.render(scene, camera);
@@ -1939,10 +2132,11 @@
 
   setupTransformControls();
   renderItemList();
-  renderSelectedItemPanel();
+  updateSelectionUI();
   if (!loadSavedSetup()) {
     changeTheme('light', { skipHistory: true });
-    changeDeskSize('standard', { skipHistory: true });
+    changeDeskSize(6, { skipHistory: true });
+    changeDeskDesign('desk1', { skipHistory: true });
   }
   animate();
 </script>
