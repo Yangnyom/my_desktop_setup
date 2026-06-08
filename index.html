@@ -776,6 +776,26 @@
       white-space: normal;
     }
   }
+.item-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: rgba(233, 69, 96, 0.1);
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    transition: 0.18s ease;
+  }
+
+  .item-link-btn:hover {
+    background: var(--accent);
+    color: #fff;
+  }
 </style>
 </head>
 <body class="theme-light">
@@ -932,11 +952,11 @@
     </section>
 
     <section class="option-section desk-design-panel">
-      <h2>Desk Design</h2>
+      <h2>Desk Type</h2>
       <div class="option-row">
-        <button class="option-button active" type="button" data-desk-design="desk1">Wooden</button>
-        <button class="option-button" type="button" data-desk-design="desk2">Glass</button>
-        <button class="option-button" type="button" data-desk-design="desk3">Gaming</button>
+        <button class="option-button active" type="button" data-desk-design="desk1">L-Shaped Desk</button>
+        <button class="option-button" type="button" data-desk-design="desk2">Standard Desk</button>
+        <button class="option-button" type="button" data-desk-design="desk3">Pedestal Desk</button>
       </div>
       <div class="background-upload" style="margin-top:10px">
         <label style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--panel-muted)">
@@ -986,26 +1006,26 @@
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
   const ITEM_DATA = {
-    keyboard: { name: 'Custom Keyboard', brand: 'Setup', model: 'keybo', category: 'Device', group: 'device', icon: '⌨', url: './objects/keybo.stl', standardSize: 0.8 },
-    'full-keyboard': { name: 'Full Keyboard', brand: 'Setup', model: 'full_keyboard', category: 'Device', group: 'device', icon: '⌨', url: './objects/full keyboard.stl', standardSize: 0.8 },
-    '60-keyboard': { name: '60% Keyboard', brand: 'Setup', model: '60_keyboard', category: 'Device', group: 'device', icon: '⌨', url: './objects/60%25keyboard.stl', standardSize: 0.6 },
-    mic: { name: 'Studio Mic', brand: 'Setup', model: 'mic', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic.stl', standardSize: 0.35 },
-    'mic2': { name: 'Premium Mic', brand: 'Setup', model: 'mic2', category: 'Audio', group: 'device', icon: '🎙', url: './objects/mic2.stl', standardSize: 0.35 },
-    laptop: { name: 'Notebook', brand: 'Setup', model: 'notebook', category: 'Computer', group: 'device', icon: '💻', url: './objects/notebook.stl', standardSize: 0.65 },
-    'notebook-stand': { name: 'Notebook Stand', brand: 'Setup', model: 'notebook_stand', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand.stl', standardSize: 0.4 },
-    'notebook-stand-1': { name: 'Notebook Stand Pro', brand: 'Setup', model: 'notebook_stand_1', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand_1.stl', standardSize: 0.4 },
-    mouse: { name: 'Mouse', brand: 'Setup', model: 'mouse', category: 'Device', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb', standardSize: 0.25 },
-    monitor: { name: 'Monitor', brand: 'Setup', model: 'monitor', category: 'Device', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb', standardSize: 0.7 },
-    pc: { name: 'Desktop PC', brand: 'Setup', model: 'pc_case', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb', standardSize: 0.5 },
-    desk1: { name: 'Wooden Desk', brand: 'Setup', model: 'desk1', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk1.glb', standardSize: 1.0 },
-    desk2: { name: 'Glass Desk', brand: 'Setup', model: 'desk2', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk2.glb', standardSize: 1.0 },
-    desk3: { name: 'Gaming Desk', brand: 'Setup', model: 'desk3', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk3.glb', standardSize: 1.0 },
-    lighting1: { name: 'Desk Lamp', brand: 'Setup', model: 'lighting1', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting1.glb', standardSize: 0.3 },
-    lighting2: { name: 'LED Strip', brand: 'Setup', model: 'lighting2', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting2.glb', standardSize: 0.3 },
-    lighting3: { name: 'Floor Lamp', brand: 'Setup', model: 'lighting3', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting3.glb', standardSize: 0.4 },
-    speaker1: { name: 'Speaker L', brand: 'Setup', model: 'speaker1', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker1.glb', standardSize: 0.3 },
-    speaker2: { name: 'Speaker R', brand: 'Setup', model: 'speaker2', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker2.glb', standardSize: 0.3 },
-    speaker3: { name: 'Subwoofer', brand: 'Setup', model: 'speaker3', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker3.glb', standardSize: 0.35 }
+    keyboard: { name: 'Custom COX CK87 BT 텐키리스', brand: 'COX', model: 'CK87 BT', category: 'Keyboard', group: 'device', icon: '⌨', url: './objects/keybo.stl', standardSize: 0.8,link: 'https://itempage3.auction.co.kr/DetailView.aspx?itemno=E658858077' },
+    'full-keyboard': { name: 'Keychron K10 PRO MAX', brand: 'Keychron', model: 'K10 PRO MAX', category: 'Keyboard', group: 'device', icon: '⌨', url: './objects/full keyboard.stl', standardSize: 0.8, link:'https://prod.danawa.com/info/?pcode=106736522&keyword=%ED%82%A4%ED%81%AC%EB%A1%A0+K10+RGB&cate=112782'},
+    '60-keyboard': { name: 'MCHOSE Ace 60', brand: 'MCHOSE', model: 'Ace 60', category: 'Keyboard', group: 'device', icon: '⌨', url: './objects/60%25keyboard.stl', standardSize: 0.6, link:'https://prod.danawa.com/info/?pcode=72978803&keyword=%ED%82%A4%EB%B3%B4%EB%93%9CACE60&cate=112782' },
+    mic: { name: 'MATA STUDIO C10', brand: 'MATA STUDIO', model: 'C10', category: 'Mic', group: 'device', icon: '🎙', url: './objects/mic.stl', standardSize: 0.35, link:'https://prod.danawa.com/info/?pcode=16614107&keyword=MATA+STUDIO+C10&cate=10214913' },
+    'mic2': { name: 'PANSHI MU1000', brand: 'PANSHI', model: 'MU1000', category: 'Mic', group: 'device', icon: '🎙', url: './objects/mic2.stl', standardSize: 0.35, link:'https://item.gmarket.co.kr/Item?spm=gmktpc.searchlist.topclickeditem.d0_0.510f5a0eZ3taVB&goodscode=4692945224&utparam-url=%7B%22x_object_id%22%3A%224692945224%22%2C%22x_object_type%22%3A%22item%22%2C%22query%22%3A%22%ED%99%95%EC%84%B1%EA%B8%B0%22%2C%22pvid%22%3A%223d9828002a7547cdb5688a376921942b%22%2C%22pvid_sys%22%3A%22gmarket%20server%22%2C%22search_session_id%22%3A%2255d6c33b-c7da-4b4d-a4e8-320d3607dde4%22%2C%22origin_price%22%3A%2260280%22%2C%22promotion_price%22%3A%2256250%22%2C%22coupon_price%22%3A%22%22%2C%22ab_buckets%22%3A%22%22%2C%22trafficType%22%3A%22organic%22%7D' },
+    laptop: { name: 'ASUS TUF A14', brand: 'ASUS', model: 'FA401UM-RG007', category: 'Laptop', group: 'device', icon: '💻', url: './objects/notebook.stl', standardSize: 0.65, link:'https://prod.danawa.com/info/?pcode=92886116&keyword=asus+tuf+a14&cate=112758' },
+    'notebook-stand': { name: 'Notebook Stand', brand: 'Setup', model: 'notebook_stand', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand.stl', standardSize: 0.4, link:'' },
+    'notebook-stand-1': { name: 'Notebook Stand Pro', brand: 'Setup', model: 'notebook_stand_1', category: 'Accessory', group: 'device', icon: '📐', url: './objects/notebookstand_1.stl', standardSize: 0.4, link:'' },
+    mouse: { name: 'G PRO X SUPERLIGHT 2', brand: 'Logitech', model: 'G PRO X SUPERLIGHT 2', category: 'Mouse', group: 'device', icon: '🖱', url: './objects/프론트엔드 4조 마우스.glb', standardSize: 0.25, link:'https://m.danawa.com/product/product.html?code=28481684&keyword=%EB%A7%88%EC%9A%B0%EC%8A%A4&cateCode=112787' },
+    monitor: { name: '알파스캔 AOC 27B36H3', brand: '알파스캔', model: '27B36H3', category: 'Monitor', group: 'device', icon: '🖥', url: './objects/프론트엔드 4조 모니터.glb', standardSize: 0.7, link:'https://m.danawa.com/product/product.html?code=99128231&keyword=%EB%AA%A8%EB%8B%88%ED%84%B0&cateCode=112757' },
+    pc: { name: 'D포유컴퓨터 퍼포먼스PC 42', brand: '포유컴퓨터', model: '코어5 225', category: 'Computer', group: 'device', icon: '🖧', url: './objects/프론트엔터 4조 본체.glb', standardSize: 0.5, link:'https://m.danawa.com/product/product.html?code=21515228&keyword=%EB%B3%B8%EC%B2%B4&cateCode=112756'},
+    desk1: { name: 'Wooden Desk', brand: 'Setup', model: 'desk1', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk1.glb', standardSize: 1.0, link:'' },
+    desk2: { name: 'Glass Desk', brand: 'Setup', model: 'desk2', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk2.glb', standardSize: 1.0, link:'' },
+    desk3: { name: 'Gaming Desk', brand: 'Setup', model: 'desk3', category: 'Furniture', group: 'device', icon: '🪑', url: './objects/desk3.glb', standardSize: 1.0, link:'' },
+    lighting1: { name: 'RUSTA 단스탠드', brand: 'RUSTA', model: 'KS1322T', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting1.glb', standardSize: 0.3, link:'https://brand.naver.com/marketb/products/12785656953' },
+    lighting2: { name: 'LEXON 미나 M 스탠드', brand: 'LEXON', model: 'Mina M', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting2.glb', standardSize: 0.3, link:'https://prod.danawa.com/info/?pcode=13130141&keyword=Lexon&cate=15220748' },
+    lighting3: { name: '케이빌 LED 무선 스탠드', brand: '더숨코리아', model: '케이빌 리모컨 테이블스탠드', category: 'Lighting', group: 'device', icon: '💡', url: './objects/lighting3.glb', standardSize: 0.4, link:'https://prod.danawa.com/info/?pcode=10410555&cate=15320754' },
+    speaker1: { name: 'Britz Z2100 Pinacle 2', brand: 'Britz', model: 'Z2100 Pinacle 2', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker1.glb', standardSize: 0.3, link:'https://prod.danawa.com/info/?pcode=3363509&keyword=britz+%EC%8A%A4%ED%94%BC%EC%BB%A4&cate=10222639' },
+    speaker2: { name: 'BOSE Companion 2 Series III', brand: 'BOSE', model: 'Companion 2 Series III', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker2.glb', standardSize: 0.3, link:'https://prod.danawa.com/info/?pcode=2562327&keyword=Bose+Companion+2+Series+III&cate=10222639' },
+    speaker3: { name: 'Edifier M90', brand: 'Edifier', model: 'M90', category: 'Audio', group: 'device', icon: '🔊', url: './objects/speaker3.glb', standardSize: 0.35, link:'https://prod.danawa.com/info/?pcode=122619238&keyword=%EC%97%90%EB%94%94%ED%8C%8C%EC%9D%B4%EC%96%B4&cate=10222639' }
   };
 
   const stlLoader = new STLLoader();
@@ -1631,6 +1651,7 @@
             <p>Brand: ${info.brand}</p>
             <p>Model: ${info.model}</p>
             <p>Category: ${info.category}</p>
+            ${info.link ? `<a href="${info.link}" target="_blank" class="item-link-btn">🔗 링크 이동</a>` : ''}
           </div>
         </div>
       `;
